@@ -1,0 +1,15 @@
+.DS_Store
+Thumbs.db
+.vercel
+.env
+.env.local
+node_modules/
+
+# Design bundle (source of truth lives at claude.ai/design)
+design/
+
+# Reference docs (not part of the site)
+*.pdf
+*.docx
+BioLift_Cooperator_Trial_Spec_v1.md
+eadf612ecb81
