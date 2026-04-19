@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SixRing Vendor Desk — Bio Trial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Special+Elite&family=Cutive+Mono&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --kraft:        #d9c29a;
+    --kraft-deep:   #b89a68;
+    --paper:        #f5ecd6;
+    --paper-warm:   #efe0bd;
+    --ink:          #1e2a4a;
+    --ink-soft:     #2b3a63;
+    --graphite:     #3a3a38;
+    --green:        #3d7a2f;
+    --green-soft:   #5a9645;
+    --rust:         #a64826;
+    --yellow:       #f4e14a;
+    --border:       #bfa87a;
+    --shadow:       0 12px 24px -10px rgba(40, 20, 10, 0.45),
+                    0 4px 8px -3px rgba(40, 20, 10, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    color: var(--ink);
+    background: #2a1a0e;
+    min-height: 100vh;
+  }
+
+  .desk {
+    min-height: 100vh;
+    padding: 32px clamp(16px, 3vw, 48px);
+    background:
+      radial-gradient(1200px 700px at 20% -10%, #7b5230 0%, transparent 60%),
+      radial-gradient(1000px 600px at 120% 110%, #5a371a 0%, transparent 60%),
+      #3a2414;
+  }
+
+  header.desk-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+    color: var(--paper);
+  }
+  header.desk-head h1 {
+    font-family: "Permanent Marker", cursive;
+    font-size: clamp(28px, 4vw, 42px);
+    margin: 0;
+    letter-spacing: 0.5px;
+  }
+  header.desk-head .sub {
+    font-family: "Special Elite", monospace;
+    opacity: 0.85;
+    font-size: 14px;
+  }
+  header.desk-head .who {
+    font-family: "Cutive Mono", monospace;
+    font-size: 13px;
+    color: var(--kraft);
+  }
+  header.desk-head .who button {
+    margin-left: 10px;
+    background: transparent;
+    color: var(--kraft);
+    border: 1px dashed var(--kraft);
+    padding: 4px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font: inherit;
+  }
+  header.desk-head .who button:hover { background: rgba(217,194,154,0.15); }
+
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+
+  /* ---------- Login form ---------- */
+  .login-wrap {
+    max-width: 440px;
+    margin: 8vh auto;
+  }
+  .login-wrap h2 {
+    font-family: "Permanent Marker", cursive;
+    margin: 0 0 6px;
+    font-size: 24px;
+  }
+  .login-wrap p.hint {
+    font-family: "Special Elite", monospace;
+    font-size: 13px;
+    color: var(--graphite);
+    margin: 0 0 18px;
+  }
+  .login-wrap label {
+    display: block;
+    font-family: "Special Elite", monospace;
+    font-size: 13px;
+    margin: 10px 0 4px;
+  }
+  .login-wrap input {
+    width: 100%;
+    padding: 10px 12px;
+    font: inherit;
+    border: 1px solid var(--border);
+    background: #fff8e7;
+    border-radius: 3px;
+  }
+  .login-wrap input:focus {
+    outline: 2px solid var(--ink-soft);
+    outline-offset: 1px;
+  }
+  .login-wrap button.primary {
+    margin-top: 16px;
+    width: 100%;
+    padding: 12px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: "Permanent Marker", cursive;
+    font-size: 18px;
+    letter-spacing: 0.5px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .login-wrap button.primary:disabled { opacity: 0.5; cursor: default; }
+  .login-wrap .err {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: #fbe3d9;
+    border: 1px solid var(--rust);
+    color: var(--rust);
+    font-family: "Cutive Mono", monospace;
+    font-size: 13px;
+    border-radius: 3px;
+  }
+
+  /* ---------- Dashboard ---------- */
+  .summary-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .stat {
+    flex: 1 1 160px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+  }
+  .stat .label {
+    font-family: "Special Elite", monospace;
+    font-size: 12px;
+    color: var(--graphite);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .stat .value {
+    font-family: "Permanent Marker", cursive;
+    font-size: 28px;
+    margin-top: 2px;
+  }
+
+  .table-card { padding: 0; overflow: hidden; }
+  .table-wrap {
+    overflow-x: auto;
+  }
+  table.signups {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: "Cutive Mono", monospace;
+    font-size: 13px;
+    min-width: 1100px;
+  }
+  table.signups thead th {
+    background: var(--kraft-deep);
+    color: #fff;
+    text-align: left;
+    padding: 10px 12px;
+    font-family: "Special Elite", monospace;
+    font-weight: 400;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    position: sticky; top: 0;
+    border-bottom: 2px solid #7b613b;
+  }
+  table.signups tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px dashed rgba(139,107,58,0.35);
+    vertical-align: top;
+  }
+  table.signups tbody tr:hover { background: rgba(217,194,154,0.25); }
+  table.signups tbody tr.delivered { background: rgba(93,150,69,0.13); }
+
+  .farmer .name { font-weight: 600; color: var(--ink); font-family: "Inter"; }
+  .farmer .farm { color: var(--graphite); font-size: 12px; }
+  .farmer .email { font-size: 12px; color: var(--ink-soft); }
+
+  .chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-family: "Special Elite", monospace;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .chip.new       { background: #eadfbf; color: var(--graphite); }
+  .chip.pending   { background: #f7e2a6; color: #7a5100; }
+  .chip.paid      { background: #cce8bf; color: #235012; }
+  .chip.delivered { background: var(--green); color: #fff; }
+
+  .vendor-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 200px;
+  }
+  .vendor-cell label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "Special Elite", monospace;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .vendor-cell input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--green);
+    cursor: pointer;
+  }
+  .vendor-cell .liters-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "Special Elite", monospace;
+    font-size: 13px;
+  }
+  .vendor-cell input.liters {
+    width: 70px;
+    padding: 4px 6px;
+    border: 1px solid var(--border);
+    background: #fff8e7;
+    font: inherit;
+    border-radius: 3px;
+  }
+  .vendor-cell .acres-computed {
+    font-size: 12px;
+    color: var(--graphite);
+    font-style: italic;
+  }
+  .vendor-cell .save-btn {
+    align-self: flex-start;
+    padding: 5px 12px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: "Special Elite", monospace;
+    font-size: 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+  .vendor-cell .save-btn[data-dirty="true"] { background: var(--rust); }
+  .vendor-cell .save-btn:disabled { opacity: 0.5; cursor: default; }
+  .vendor-cell .saved-flash {
+    font-size: 11px;
+    color: var(--green);
+    font-family: "Special Elite", monospace;
+  }
+  .vendor-cell .err {
+    font-size: 11px;
+    color: var(--rust);
+    font-family: "Cutive Mono", monospace;
+  }
+
+  .muted { color: var(--graphite); opacity: 0.7; }
+
+  .spinner {
+    color: var(--paper);
+    font-family: "Special Elite", monospace;
+    text-align: center;
+    padding: 48px;
+  }
+
+  footer.desk-foot {
+    margin-top: 32px;
+    color: var(--kraft);
+    opacity: 0.7;
+    text-align: center;
+    font-family: "Cutive Mono", monospace;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<main class="desk">
+
+  <!-- Logged-out: magic-link login -->
+  <section id="loginView" class="login-wrap card" hidden>
+    <h2>SixRing Vendor Desk</h2>
+    <p class="hint">Log in to review farmer signups, confirm payment, and release access.</p>
+    <form id="loginForm">
+      <label for="loginEmail">Email</label>
+      <input type="email" id="loginEmail" name="email" required autocomplete="email" />
+      <label for="loginPw">Password</label>
+      <input type="password" id="loginPw" name="password" required autocomplete="current-password" />
+      <button class="primary" type="submit" id="loginBtn">Sign in</button>
+    </form>
+    <div id="loginErr" class="err" hidden></div>
+  </section>
+
+  <!-- Logged-in: dashboard -->
+  <section id="dashView" hidden>
+    <header class="desk-head">
+      <div>
+        <h1>Vendor Desk</h1>
+        <div class="sub">SixRing × Buperac Bio Trial — 2026 Q1/Q2</div>
+      </div>
+      <div class="who">
+        <span id="whoEmail">—</span>
+        <button type="button" id="signoutBtn">Sign out</button>
+      </div>
+    </header>
+
+    <div class="summary-row">
+      <div class="stat">
+        <div class="label">Signups</div>
+        <div class="value" id="statCount">—</div>
+      </div>
+      <div class="stat">
+        <div class="label">Paid</div>
+        <div class="value" id="statPaid">—</div>
+      </div>
+      <div class="stat">
+        <div class="label">Delivered</div>
+        <div class="value" id="statDelivered">—</div>
+      </div>
+      <div class="stat">
+        <div class="label">Liters shipped</div>
+        <div class="value" id="statLiters">—</div>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-wrap">
+        <table class="signups" id="signupsTable">
+          <thead>
+            <tr>
+              <th style="width: 12%;">Signed up</th>
+              <th style="width: 20%;">Farmer</th>
+              <th style="width: 10%;">Region</th>
+              <th style="width: 10%;">Logistics</th>
+              <th style="width: 8%;">Req. acres</th>
+              <th style="width: 14%;">Status</th>
+              <th style="width: 26%;">SixRing actions</th>
+            </tr>
+          </thead>
+          <tbody id="signupsBody">
+            <tr><td colspan="7" class="spinner">loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer class="desk-foot">
+      1 L product = 2 acres coverage. Checking "delivered" immediately releases trial access to the farmer.
+    </footer>
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="vendor.js"></script>
+</body>
+</html>
