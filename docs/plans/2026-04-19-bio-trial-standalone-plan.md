@@ -383,9 +383,11 @@ Dashboard → Project Settings → Edge Functions → Secrets. Add:
 |---|---|
 | `RESEND_API_KEY` | `re_45DQvoSu_FoPcKXpMrYL7MdYHr9pxg3jq` (from Kyle, do not commit) |
 | `BIO_TRIAL_FROM` | `Buperac Trial <trial@buperac.com>` (requires Resend domain verification — see Task E1) |
-| `BIO_TRIAL_VENDOR_EMAIL` | `ericl@gosingletrack.com` |
+| `BIO_TRIAL_VENDOR_EMAIL` | **LEAVE UNSET** — Kyle does not want Eric to receive notifications yet. The edge function must gracefully skip the vendor recipient when this var is unset. |
 | `BIO_TRIAL_OWNER_EMAIL` | `buperac@gmail.com` |
 | `BIO_TRIAL_WEBHOOK_SECRET` | same UUID as the Vault `bio_trial_webhook_secret` |
+
+> **Verify edge function handles unset `BIO_TRIAL_VENDOR_EMAIL`.** When capturing the function source in Task A4, read the code — if it hard-crashes on unset `BIO_TRIAL_VENDOR_EMAIL`, add a guard before deploying. The behavior we want: if the env var is falsy, skip the vendor email, still send to the owner.
 
 **Step 2: Verify**
 
@@ -507,37 +509,44 @@ Visit `https://trial.buperac.com`. Submit a real (but throwaway-email) signup. V
 
 ---
 
-### Task C5: Register SixRing vendor
+### Task C5: Register vendor for Kyle (Eric deferred)
 
-**Step 1: Eric logs in**
+Kyle does not want Eric to have live access yet. Instead, register a Kyle-owned vendor row so Kyle can smoke-test the `/vendor` page end-to-end.
 
-Eric visits `trial.buperac.com/vendor`, enters `ericl@gosingletrack.com`, clicks the magic link in his email.
+**Step 1: Kyle logs in**
 
-**Step 2: Grab his auth user_id**
+Visit `trial.buperac.com/vendor`, enter a Kyle email (e.g. `kyle@bushelsenergy.com` or `buperac@gmail.com`), click the magic link.
+
+**Step 2: Grab Kyle's auth user_id**
 
 Run against the new project:
 
 ```sql
 SELECT id, email FROM auth.users
-WHERE email = 'ericl@gosingletrack.com';
+WHERE email = '<kyle-email-from-step-1>';
 ```
 
 **Step 3: Insert vendor row**
 
 ```sql
 INSERT INTO bio_trial.vendor_users (user_id, vendor_name)
-VALUES ('<eric-uuid>', 'SixRing');
+VALUES ('<kyle-uuid>', 'Buperac (admin)');
 ```
 
 **Step 4: Verify**
 
-Eric refreshes `/vendor` — the signups table should render (with only the test row from C4 Step 4).
+Refresh `/vendor` — the signups table should render (with only the test row from C4 Step 4).
 
 **Step 5: Delete the test signup**
 
 ```sql
 DELETE FROM bio_trial.signups WHERE email = '<throwaway-email>';
 ```
+
+**Note on Eric:** When Kyle is ready to loop Eric in later, the steps are:
+1. Eric visits `/vendor`, enters `ericl@gosingletrack.com`, clicks the magic link.
+2. Kyle runs `INSERT INTO bio_trial.vendor_users (user_id, vendor_name) VALUES ('<eric-uuid>', 'SixRing');`
+3. Kyle sets `BIO_TRIAL_VENDOR_EMAIL=ericl@gosingletrack.com` in Edge Function Secrets.
 
 ---
 

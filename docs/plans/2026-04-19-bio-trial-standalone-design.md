@@ -72,7 +72,7 @@ Two fully independent systems after cutover:
 - **Edge function secrets:**
   - `RESEND_API_KEY` = trial-specific Resend key provided by Kyle (`re_45DQvoSu_...`). Set via `supabase secrets set`; never committed.
   - `BIO_TRIAL_FROM` = verified Resend sender (e.g. `"Buperac Trial <trial@buperac.com>"` — requires domain verification in Resend).
-  - `BIO_TRIAL_VENDOR_EMAIL` = `ericl@gosingletrack.com`.
+  - `BIO_TRIAL_VENDOR_EMAIL` = **intentionally left unset for now**. Kyle does not want Eric / SixRing to receive notifications yet. The edge function must handle the unset case by skipping the vendor recipient (email goes to owner only). When Kyle is ready to loop Eric in, the value to set is `ericl@gosingletrack.com`.
   - `BIO_TRIAL_OWNER_EMAIL` = `buperac@gmail.com`.
   - `BIO_TRIAL_WEBHOOK_SECRET` = same value as the Vault `bio_trial_webhook_secret` entry.
 
@@ -94,11 +94,14 @@ Two fully independent systems after cutover:
 - Vercel auto-issues the Let's Encrypt cert once the CNAME resolves.
 - The Shopify apex `buperac.com` A/ALIAS records are untouched — the Shopify site keeps working.
 
-### Vendor re-registration (one-time manual)
+### Vendor re-registration (deferred)
 
-- Eric @ SixRing visits `trial.buperac.com/vendor`, enters his email, receives a magic-link from the *new* project's `auth.users`.
-- After he signs in, Kyle (or we) runs a small SQL insert to add his new `user_id` into `bio_trial.vendor_users`.
-- Script: `INSERT INTO bio_trial.vendor_users (user_id, vendor_name) VALUES ('<new-uuid>', 'SixRing');`
+Kyle does not want Eric / SixRing to have live access to the new project yet. Deferring this entirely:
+
+- Eric's vendor registration on the new project is **not performed at cutover**.
+- `bio_trial.vendor_users` starts empty on the new project. Kyle retains admin access via direct SQL / Supabase dashboard.
+- The `/vendor` page will show "no access" to anyone who logs in until a row is added manually.
+- When Kyle is ready: Eric visits `trial.buperac.com/vendor`, requests a magic link, signs in, and Kyle runs `INSERT INTO bio_trial.vendor_users (user_id, vendor_name) VALUES ('<new-uuid>', 'SixRing');` against the new project.
 
 ### Bushel Board de-integration (separate PR in `bushel-board-app` repo)
 
