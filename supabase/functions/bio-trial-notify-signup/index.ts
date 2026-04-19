@@ -27,82 +27,67 @@ interface WebhookPayload {
   old_record: SignupRow | null;
 }
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const FROM_ADDR      = Deno.env.get("BIO_TRIAL_FROM")          ?? "Bio Trial <notifications@bushels.energy>";
-// TO_VENDOR is intentionally NOT defaulted — leave BIO_TRIAL_VENDOR_EMAIL unset
-// to suppress vendor notifications (e.g. while we're not yet looping SixRing in).
-const TO_VENDOR_RAW  = Deno.env.get("BIO_TRIAL_VENDOR_EMAIL");
-const TO_VENDOR      = TO_VENDOR_RAW && TO_VENDOR_RAW.trim() !== "" ? TO_VENDOR_RAW.trim() : null;
-const TO_OWNER       = Deno.env.get("BIO_TRIAL_OWNER_EMAIL")   ?? "buperac@gmail.com";
+const TG_BOT_TOKEN   = Deno.env.get("BIO_TRIAL_TG_BOT_TOKEN");
+const TG_CHAT_ID     = Deno.env.get("BIO_TRIAL_TG_CHAT_ID");
 const WEBHOOK_SECRET = Deno.env.get("BIO_TRIAL_WEBHOOK_SECRET");
 
 const money = (cents: number | null) => cents == null
   ? "—"
   : new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 }).format(cents / 100);
 
-function buildEmail(r: SignupRow) {
+// Telegram HTML parse_mode requires <, >, & escaping in text content.
+const esc = (s: string | null | undefined) =>
+  (s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+function buildMessage(r: SignupRow): string {
   const trialCost = r.price_per_acre_cents && r.acres
     ? money(r.price_per_acre_cents * r.acres)
     : "—";
   const cropList = [...(r.crops ?? []), r.crops_other].filter(Boolean).join(", ");
-  const address  = r.logistics_method === "ship"
-    ? `${r.delivery_street ?? ""}, ${r.delivery_city ?? ""}, ${r.province_state ?? ""} ${r.delivery_postal ?? ""}`
+  const logistics = r.logistics_method === "pickup_fob_calgary" ? "Pickup FOB Calgary"
+                  : r.logistics_method === "ship"               ? "Ship to farmer"
+                  : "—";
+  const address = r.logistics_method === "ship"
+    ? `${r.delivery_street ?? ""}, ${r.delivery_city ?? ""}, ${r.province_state ?? ""} ${r.delivery_postal ?? ""}`.replace(/\s+/g, " ").trim()
     : "Pickup FOB Calgary";
+  const submitted = new Date(r.created_at).toLocaleString("en-CA", { timeZone: "America/Edmonton" });
 
-  const subject = `New Bio Trial signup — ${r.name} · ${r.farm_name} · ${r.acres} ac`;
-
-  const html = `<!doctype html><html><body style="font-family:system-ui,sans-serif;color:#1e2a4a;max-width:640px;margin:0 auto;padding:24px">
-<h2 style="margin:0 0 4px">New Bio Trial signup</h2>
-<p style="color:#55554f;margin:0 0 20px">Submitted ${new Date(r.created_at).toLocaleString("en-CA", { timeZone: "America/Edmonton" })}</p>
-<table cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:14px">
-  <tr><td style="color:#55554f">Name</td><td><strong>${r.name}</strong></td></tr>
-  <tr><td style="color:#55554f">Farm</td><td>${r.farm_name}</td></tr>
-  <tr><td style="color:#55554f">Email</td><td><a href="mailto:${r.email}">${r.email}</a></td></tr>
-  <tr><td style="color:#55554f">Phone</td><td>${r.phone ?? "—"}</td></tr>
-  <tr><td style="color:#55554f">Region</td><td>${r.province_state} · ${r.rm_county ?? "—"}</td></tr>
-  <tr><td style="color:#55554f">Crops</td><td>${cropList || "—"}</td></tr>
-  <tr><td style="color:#55554f">Trial acres</td><td>${r.acres}</td></tr>
-  <tr><td style="color:#55554f">Logistics</td><td>${r.logistics_method === "pickup_fob_calgary" ? "Pickup FOB Calgary" : r.logistics_method === "ship" ? "Ship to farmer" : "—"}</td></tr>
-  <tr><td style="color:#55554f">Address</td><td>${address}</td></tr>
-  <tr><td style="color:#55554f">Trial price</td><td><strong>${trialCost}</strong> <span style="color:#55554f">(${r.acres} ac × ${money(r.price_per_acre_cents)})</span></td></tr>
-</table>
-<p style="margin-top:24px;color:#55554f;font-size:13px">Mark payment / shipped / delivered in the vendor dashboard to progress the trial.</p>
-<p style="color:#55554f;font-size:12px">Signup ID: ${r.id}</p>
-</body></html>`;
-
-  const text = `New Bio Trial signup\n\n${r.name} — ${r.farm_name}\n${r.email} · ${r.phone ?? "no phone"}\n${r.province_state} · ${r.rm_county ?? "—"}\nCrops: ${cropList || "—"}\nTrial acres: ${r.acres}\nLogistics: ${r.logistics_method ?? "—"}\nAddress: ${address}\nTrial price: ${trialCost} (${r.acres} × ${money(r.price_per_acre_cents)})\n\nSignup ID: ${r.id}`;
-
-  return { subject, html, text };
+  return [
+    `<b>New Bio Trial signup</b>`,
+    ``,
+    `<b>${esc(r.name)}</b> — ${esc(r.farm_name)}`,
+    `${esc(r.email)}${r.phone ? " · " + esc(r.phone) : ""}`,
+    `${esc(r.province_state)}${r.rm_county ? " · " + esc(r.rm_county) : ""}`,
+    ``,
+    `Crops: ${esc(cropList || "—")}`,
+    `Trial acres: <b>${r.acres}</b>`,
+    `Logistics: ${logistics}`,
+    `Address: ${esc(address)}`,
+    `Price: <b>${trialCost}</b> (${r.acres} ac × ${money(r.price_per_acre_cents)})`,
+    ``,
+    `Submitted ${esc(submitted)}`,
+    `ID: <code>${esc(r.id)}</code>`,
+  ].join("\n");
 }
 
-async function sendEmail(subject: string, html: string, text: string) {
-  if (!RESEND_API_KEY) {
-    console.warn("RESEND_API_KEY not set — skipping email send.");
-    return { sent: false, reason: "no_api_key" };
+async function sendTelegram(text: string) {
+  if (!TG_BOT_TOKEN || !TG_CHAT_ID) {
+    console.warn("BIO_TRIAL_TG_BOT_TOKEN or BIO_TRIAL_TG_CHAT_ID not set — skipping Telegram send.");
+    return { sent: false, reason: "no_config" };
   }
 
-  const recipients = [TO_VENDOR, TO_OWNER].filter((a): a is string => typeof a === "string" && a.length > 0);
-  if (recipients.length === 0) {
-    console.warn("No recipients configured — skipping email send.");
-    return { sent: false, reason: "no_recipients" };
-  }
-
-  const res = await fetch("https://api.resend.com/emails", {
+  const res = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
     method: "POST",
-    headers: {
-      "Authorization": `Bearer ${RESEND_API_KEY}`,
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: FROM_ADDR,
-      to: recipients,
-      subject,
-      html,
-      text
-    })
+      chat_id: TG_CHAT_ID,
+      text,
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+    }),
   });
   const body = await res.text();
-  return { sent: res.ok, status: res.status, body, recipients };
+  return { sent: res.ok, status: res.status, body };
 }
 
 Deno.serve(async (req: Request) => {
@@ -127,10 +112,10 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const { subject, html, text } = buildEmail(body.record);
-  const result = await sendEmail(subject, html, text);
+  const text = buildMessage(body.record);
+  const result = await sendTelegram(text);
 
-  return new Response(JSON.stringify({ ok: true, email: result, signup_id: body.record.id }), {
+  return new Response(JSON.stringify({ ok: true, telegram: result, signup_id: body.record.id }), {
     status: 200, headers: { "content-type": "application/json" }
   });
 });
