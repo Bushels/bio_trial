@@ -613,11 +613,11 @@ Per `feedback_keep_plan_progress_log.md`: update this table per task (not per ph
 
 | Task | Title                                                        | Status | Notes                                                                                                        |
 | ---- | ------------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------ |
-| T1   | Branch bookkeeping + commit plan                             |        |                                                                                                              |
-| T2   | Farmer form: moisture sub-form                               |        |                                                                                                              |
-| T3   | Farmer timeline: render new payload + legacy fallback        |        |                                                                                                              |
-| T4   | Vendor Events panel: render new payload + legacy fallback    |        |                                                                                                              |
-| T5   | Public activity feed: kindLabel + verbForKind wording        |        |                                                                                                              |
-| T6   | README mention (only if stale)                               |        |                                                                                                              |
-| T7   | End-to-end verification on Supabase (4 readings + legacy)    |        |                                                                                                              |
+| T1   | Branch bookkeeping + commit plan                             | ✅     | Committed as `ecda991` on branch `claude/wizardly-sammet-a146a9` (off `feat/standalone-extraction`).          |
+| T2   | Farmer form: moisture sub-form                               | ✅     | Committed as `a5edb83`. Spec ✅, code review 🟡 approved with minor notes (silent unit fallback at :815 — defensive guard; renderEventForm length watched, not refactored). |
+| T3   | Farmer timeline: render new payload + legacy fallback        | ✅     | Committed as `a121046`. Diff is spec-verbatim (+24/-1 in `summarizePayload` moisture_test branch). `node --check` + isolated function test confirmed six output shapes incl. legacy compat. |
+| T4   | Vendor Events panel: render new payload + legacy fallback    | ✅     | Committed as `285a08d`. Same shape-aware block as T3, ported to vendor.js (`p` aliasing). `node --check` OK. |
+| T5   | Public activity feed: kindLabel + verbForKind wording        | ✅     | Committed as `8e1adf4`. Two entries added to the maps; payload never reaches DOM so no numeric leak.        |
+| T6   | README mention (only if stale)                               | ✅     | `grep -i moisture README.md` returned nothing — README doesn't surface event-kind specifics. No edit needed. |
+| T7   | End-to-end verification on Supabase (4 readings + legacy)    | ⚠️     | Partial — code-level verification only (parse all three JS files with `node --check`, cross-check 6 FormData names align between form and submit handler, diff-vs-base audit shows only 4 intended files touched). Live browser + Supabase runs against 4 readings + a legacy `{pct}` row deferred to post-merge smoke (subagent has no farmer token / live DB access). |
 | T8   | Open PR against feat/standalone-extraction                   |        |                                                                                                              |
