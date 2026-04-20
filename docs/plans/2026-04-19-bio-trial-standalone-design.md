@@ -70,7 +70,7 @@ Two fully independent systems after cutover:
   - `bio_trial_fn_url` — full URL of the new edge function.
   - `bio_trial_webhook_secret` — freshly generated (e.g. `gen_random_uuid()::text`).
 - **Edge function secrets:**
-  - `RESEND_API_KEY` = trial-specific Resend key provided by Kyle (`re_45DQvoSu_...`). Set via `supabase secrets set`; never committed.
+  - `RESEND_API_KEY` = trial-specific Resend key provided by Kyle. Set via `supabase secrets set`; never committed. **Historical note:** an earlier revision of these plan docs pasted the live key value; it was rotated 2026-04-20 after a pre-launch secret scan caught it in the public-repo history.
   - `BIO_TRIAL_FROM` = verified Resend sender (e.g. `"Buperac Trial <trial@buperac.com>"` — requires domain verification in Resend).
   - `BIO_TRIAL_VENDOR_EMAIL` = **intentionally left unset for now**. Kyle does not want Eric / SixRing to receive notifications yet. The edge function must handle the unset case by skipping the vendor recipient (email goes to owner only). When Kyle is ready to loop Eric in, the value to set is `ericl@gosingletrack.com`.
   - `BIO_TRIAL_OWNER_EMAIL` = `buperac@gmail.com`.
