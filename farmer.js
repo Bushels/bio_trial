@@ -491,7 +491,7 @@
       ["photo",         "Photo"],
       ["yield",         "Yield (bu/ac)"],
       ["soil_test",     "Soil test"],
-      ["moisture_test", "Moisture test"],
+      ["moisture_test", "Moisture reading"],
       ["stand_count",   "Stand count"],
       ["protein",       "Protein %"],
     ]) {
@@ -557,6 +557,122 @@
 
     form.appendChild(selRow);
 
+    // Moisture reading sub-form. kind='moisture_test' uses a structured
+    // payload { reading_type, value, unit, depth_in?, qualitative?,
+    // observed_on, notes } so we can aggregate by reading_type later
+    // and join to yield deltas. Other kinds still use the generic note
+    // textarea below. Legacy rows with payload { pct } or { text } keep
+    // rendering via the timeline/vendor fallbacks.
+    const moistureBlock = document.createElement("div");
+    moistureBlock.hidden = true;
+
+    const mTypeRow = document.createElement("div");
+    mTypeRow.className = "row";
+    const mTypeLab = document.createElement("label");
+    mTypeLab.textContent = "Reading type";
+    const mTypeSel = document.createElement("select");
+    mTypeSel.name = "moisture_reading_type";
+    for (const [v, t] of [
+      ["crop",     "Crop moisture (%)"],
+      ["soil",     "Soil moisture"],
+      ["rainfall", "Rainfall (gauge)"],
+    ]) {
+      const opt = document.createElement("option");
+      opt.value = v; opt.textContent = t;
+      mTypeSel.appendChild(opt);
+    }
+    mTypeLab.appendChild(mTypeSel);
+    mTypeRow.appendChild(mTypeLab);
+
+    const mDateLab = document.createElement("label");
+    mDateLab.textContent = "Observed on";
+    const mDateInp = document.createElement("input");
+    mDateInp.type = "date";
+    mDateInp.name = "moisture_observed_on";
+    mDateInp.valueAsDate = new Date();
+    mDateLab.appendChild(mDateInp);
+    mTypeRow.appendChild(mDateLab);
+
+    moistureBlock.appendChild(mTypeRow);
+
+    const mValRow = document.createElement("div");
+    mValRow.className = "row";
+    const mValLab = document.createElement("label");
+    mValLab.textContent = "Value";
+    const mValInp = document.createElement("input");
+    mValInp.type = "number";
+    mValInp.step = "0.1";
+    mValInp.min = "0";
+    mValInp.name = "moisture_value";
+    mValInp.placeholder = "e.g. 12.5";
+    mValLab.appendChild(mValInp);
+    mValRow.appendChild(mValLab);
+
+    const mUnitLab = document.createElement("label");
+    mUnitLab.textContent = "Unit";
+    const mUnitSel = document.createElement("select");
+    mUnitSel.name = "moisture_unit";
+    // Options are pruned per reading_type in refreshMoistureFields().
+    mUnitLab.appendChild(mUnitSel);
+    mValRow.appendChild(mUnitLab);
+
+    const mDepthLab = document.createElement("label");
+    mDepthLab.textContent = "Depth (in)";
+    const mDepthInp = document.createElement("input");
+    mDepthInp.type = "number";
+    mDepthInp.step = "1";
+    mDepthInp.min = "0";
+    mDepthInp.name = "moisture_depth_in";
+    mDepthInp.placeholder = "optional, e.g. 12";
+    mDepthLab.appendChild(mDepthInp);
+    mValRow.appendChild(mDepthLab);
+
+    moistureBlock.appendChild(mValRow);
+
+    const mQualRow = document.createElement("div");
+    mQualRow.className = "row";
+    mQualRow.hidden = true;
+    const mQualLab = document.createElement("label");
+    mQualLab.textContent = "No probe? Describe";
+    const mQualSel = document.createElement("select");
+    mQualSel.name = "moisture_qualitative";
+    for (const [v, t] of [
+      ["",         "— use numeric value above —"],
+      ["dry",      "Dry"],
+      ["adequate", "Adequate"],
+      ["wet",      "Wet"],
+    ]) {
+      const opt = document.createElement("option");
+      opt.value = v; opt.textContent = t;
+      mQualSel.appendChild(opt);
+    }
+    mQualLab.appendChild(mQualSel);
+    mQualRow.appendChild(mQualLab);
+    moistureBlock.appendChild(mQualRow);
+
+    function refreshMoistureFields() {
+      const rt = mTypeSel.value;
+      // Unit options per reading type.
+      mUnitSel.replaceChildren();
+      const units = rt === "rainfall" ? [["mm", "mm"], ["in", "in"]] : [["pct", "%"]];
+      for (const [v, t] of units) {
+        const opt = document.createElement("option");
+        opt.value = v; opt.textContent = t;
+        mUnitSel.appendChild(opt);
+      }
+      // Depth field only meaningful for soil probes.
+      mDepthLab.hidden = rt !== "soil";
+      // Qualitative fallback only for soil-without-probe.
+      mQualRow.hidden = rt !== "soil";
+      // Value is required for crop/rainfall; for soil it's required UNLESS qualitative is set.
+      mValInp.required = rt !== "soil" || !mQualSel.value;
+    }
+    mTypeSel.addEventListener("change", refreshMoistureFields);
+    mQualSel.addEventListener("change", refreshMoistureFields);
+    refreshMoistureFields();
+
+    form.appendChild(moistureBlock);
+
     const noteRow = document.createElement("div");
     noteRow.className = "row";
     const noteLab = document.createElement("label");
@@ -567,6 +683,17 @@
     noteLab.appendChild(noteInp);
     noteRow.appendChild(noteLab);
     form.appendChild(noteRow);
+
+    // Toggle moistureBlock vs generic note row visibility based on kind.
+    // noteLab was built with textContent then had the <textarea> appended,
+    // so noteLab.firstChild is the text node — safe to retarget its value.
+    function refreshKindSections() {
+      const isMoisture = kindSel.value === "moisture_test";
+      moistureBlock.hidden = !isMoisture;
+      noteLab.firstChild.nodeValue = isMoisture ? "Notes (optional)" : "Notes / value";
+    }
+    kindSel.addEventListener("change", refreshKindSections);
+    refreshKindSections();
 
     const fileRow = document.createElement("div");
     fileRow.className = "row";
@@ -656,6 +783,51 @@
             throw new Error("Enter bushels per acre as a number in Notes / value.");
           }
           payload = { bu_per_ac: num };
+        } else if (kind === "moisture_test") {
+          const rt       = String(fd.get("moisture_reading_type") || "");
+          const obsOn    = String(fd.get("moisture_observed_on") || "");
+          const valueRaw = String(fd.get("moisture_value") || "").trim();
+          const unit     = String(fd.get("moisture_unit") || "");
+          const depthRaw = String(fd.get("moisture_depth_in") || "").trim();
+          const qual     = String(fd.get("moisture_qualitative") || "");
+
+          if (!rt)    throw new Error("Pick a moisture reading type (crop / soil / rainfall).");
+          if (!obsOn) throw new Error("Pick the date the reading was taken.");
+
+          // Soil can substitute a qualitative bucket for a numeric reading;
+          // crop and rainfall must have a number.
+          const hasQual = rt === "soil" && qual !== "";
+          let value = null;
+          if (!hasQual) {
+            const n = Number(valueRaw);
+            if (!isFinite(n) || n <= 0) {
+              throw new Error(
+                rt === "soil"
+                  ? "Enter a soil-probe reading, or pick Dry/Adequate/Wet if you don't have a probe."
+                  : "Enter a numeric moisture value."
+              );
+            }
+            value = n;
+          }
+
+          // Normalize unit per reading type.
+          const expectedUnits = rt === "rainfall" ? ["mm", "in"] : ["pct"];
+          const finalUnit = hasQual ? null : (expectedUnits.includes(unit) ? unit : expectedUnits[0]);
+
+          const depth_in = rt === "soil" && depthRaw !== "" ? Number(depthRaw) : null;
+          if (depth_in != null && (!isFinite(depth_in) || depth_in < 0)) {
+            throw new Error("Depth must be a non-negative number of inches.");
+          }
+
+          payload = {
+            reading_type: rt,
+            value: value,
+            unit: finalUnit,
+            depth_in: depth_in,
+            qualitative: hasQual ? qual : null,
+            observed_on: obsOn,
+            notes: note || "",
+          };
         } else {
           payload = { text: note };
         }
