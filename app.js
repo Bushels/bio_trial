@@ -89,18 +89,21 @@
   // ODOMETER
   // ==============================================
   const DIGITS = 6;
+  // Worst-case travel: fromD (max 9) + ticks (max 9) + extraSpins*10 (max 30) = 48.
+  // Strip needs enough 0..9 repeats to cover that without running off the end.
+  const STRIP_CELLS = 55;
   const digitsEl = document.getElementById("odo-digits");
   const drums = [];
   const DRUM_H = () => drums[0] ? drums[0].drum.getBoundingClientRect().height : 64;
 
-  // Build drums, each with a strip of 0..9 then a repeated 0 (for a smooth wrap)
+  // Build drums, each with a long strip of 0..9 repeated so rollTo() can animate
+  // through multiple rotations without the strip scrolling past its own content.
   for (let i = 0; i < DIGITS; i++) {
     const drum = document.createElement("div");
     drum.className = "odo-drum";
     const strip = document.createElement("div");
     strip.className = "odo-strip";
-    // Put 0..9 then a trailing 0 for clean rollovers
-    for (let n = 0; n <= 10; n++) {
+    for (let n = 0; n < STRIP_CELLS; n++) {
       const s = document.createElement("span");
       s.textContent = (n % 10).toString();
       strip.appendChild(s);
