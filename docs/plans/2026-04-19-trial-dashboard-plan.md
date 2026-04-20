@@ -96,7 +96,7 @@ Updated per task so this file is always the source of truth for where we are. Se
 | 5     | T14  | `/start` binding                               | 🟡     | Migration `20260420000014_service_role_bio_trial_grants` applied. Edge fn v2 deployed with `handleStart` (UUID validate → lookup → reject if bound elsewhere → atomic UPDATE with `.is(null)` guard → success). **E2E blocked** until Kyle sets `BIO_TRIAL_TG_WEBHOOK_SECRET` in Supabase Dashboard. |
 | 5     | T15  | text observations → `trial_events`             | ✅     | v3 deployed. `resolveSignup` + `handleObservation`; duplicate-key inserts (Telegram retry) treated as success via `isDuplicateKey` helper. |
 | 5     | T16  | photo ingest → storage + `trial_events`        | ✅     | v4 deployed. `handlePhoto` streams bytes from Telegram `getFile` → `trial-uploads` bucket → `kind='photo'` event with `file_urls=[storagePath]`. Picks largest resolution via `width*height`; idempotent via `isDuplicateKey`. |
-| 5     | T17  | `/apply` + `/yield` parsers                    | ⬜     |  |
+| 5     | T17  | `/apply` + `/yield` parsers                    | ✅     | v5 deployed. `handleApply` / `handleYield` build inline keyboards over `trial_fields`. `handleCallback` parses `apply:<fieldId>` / `yield:<fieldId>:<bu>` and inserts `kind='application'` or `kind='yield'` events; calls `answerCallbackQuery` to dismiss the loading spinner. Inserts smoke-tested via raw SQL — `trial_events_kind_check` accepts both kinds, `trial_events_source_check` accepts `'telegram'`. Live callback_query test still gated on `BIO_TRIAL_TG_WEBHOOK_SECRET`. |
 | 5     | T18  | `setWebhook` registration                      | ⬜     |  |
 | 6     | T19  | `farmer.html` skeleton                         | ⬜     |  |
 | 6     | T20  | `farmer.js` CRUD + upload (uses edge fn URL)   | ⬜     | depends on T11 pivot |
@@ -112,7 +112,7 @@ Updated per task so this file is always the source of truth for where we are. Se
 - **T11 → edge function** (see T11 section for details). `storage.create_signed_upload_url` doesn't exist as a Postgres function; signing has to happen through the storage REST API.
 - **Schema column mismatches in `bio_trial.signups`** (noticed during T8): plan assumed `paid, liters, delivered, shipped, province` — real columns are `payment_status, liters_purchased, product_delivered_at, product_shipped_at, province_state`. `farmer_bootstrap` derives booleans from the real columns; all test-signup INSERTs in later phases use the real column names.
 
-**Test artifact:** `bio_trial.signups` id `3ef9f803-deb3-4117-a093-99d5f4a81da4` ("Test Farmer", AB, wheat, 10 ac) — created during T11 verification and retained for Phase 5/6/7 testing. Will be cleaned up at T26.
+**Test artifact:** `bio_trial.signups` id `3ef9f803-deb3-4117-a093-99d5f4a81da4` ("Test Farmer", AB, wheat, 10 ac) — created during T11 verification and retained for Phase 5/6/7 testing. T17 added `trial_fields` id `1d48513d-188b-4ae8-9211-039a71698c4d` ("NW Field (smoke test)", wheat) and two `trial_events` (application + yield=52) under it — all will be cleaned up at T26.
 
 ---
 

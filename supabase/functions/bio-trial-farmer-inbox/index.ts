@@ -1,11 +1,11 @@
 // Telegram webhook receiver for the Buperac bio-trial farmer inbox.
 //
-// Roles in scope (built up across Phase 5 of the trial-dashboard plan):
+// Roles in scope (Phase 5 of the trial-dashboard plan):
 //   T13 — scaffold + X-Telegram-Bot-Api-Secret-Token verification
 //   T14 — /start <signup_id> binding (writes signups.farmer_telegram_chat_id)
-//   T15 — free-form text      -> trial_events(kind='observation')
-//   T16 — photos               -> storage + trial_events(kind='photo')
-//   T17 — /apply and /yield    -> inline-keyboard field pickers, callback_query handled
+//   T15 — free-form text  -> trial_events(kind='observation')
+//   T16 — photos          -> storage + trial_events(kind='photo')
+//   T17 — /apply + /yield -> inline-keyboard field pickers + callback_query handler
 //
 // Telegram identifies itself via the `x-telegram-bot-api-secret-token` header
 // we registered in setWebhook. Any POST without it is 403'd.
@@ -55,6 +55,37 @@ async function resolveSignup(sb: SupabaseClient, chatId: number): Promise<string
     return null;
   }
   return data?.id ?? null;
+}
+
+type TgField = { id: string; label: string | null; crop: string | null };
+type TgCallbackQuery = {
+  id: string;
+  data?: string;
+  message?: { chat?: { id?: number } };
+};
+
+async function listFields(sb: SupabaseClient, signupId: string): Promise<TgField[]> {
+  const { data, error } = await sb
+    .schema("bio_trial")
+    .from("trial_fields")
+    .select("id, label, crop")
+    .eq("signup_id", signupId)
+    .order("created_at");
+  if (error) {
+    console.error("listFields failed", error);
+    return [];
+  }
+  return (data ?? []) as TgField[];
+}
+
+async function tgAnswerCallback(callbackQueryId: string): Promise<void> {
+  if (!TG_BOT_TOKEN) return;
+  const res = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/answerCallbackQuery`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ callback_query_id: callbackQueryId }),
+  }).catch((e) => { console.error("answerCallbackQuery failed", e); return null; });
+  if (res && !res.ok) console.error("answerCallbackQuery non-ok", res.status);
 }
 
 // `signups.telegram_message_id` has a UNIQUE partial index, so Telegram retries on timeout
@@ -232,6 +263,107 @@ async function handleStart(sb: SupabaseClient, chatId: number, args: string): Pr
   );
 }
 
+async function handleApply(sb: SupabaseClient, chatId: number): Promise<void> {
+  const signupId = await resolveSignup(sb, chatId);
+  if (!signupId) {
+    await tgSendMessage(chatId, "Connect first using your trial link.");
+    return;
+  }
+  const fields = await listFields(sb, signupId);
+  if (fields.length === 0) {
+    await tgSendMessage(chatId, "No fields yet — add one on your farmer dashboard first.");
+    return;
+  }
+  const keyboard = {
+    inline_keyboard: fields.map((f) => [{
+      text: `${f.label ?? "(unnamed)"} (${f.crop ?? "?"})`,
+      callback_data: `apply:${f.id}`,
+    }]),
+  };
+  await tgSendMessage(chatId, "Which field did you spray Buperac on?", { reply_markup: keyboard });
+}
+
+async function handleYield(sb: SupabaseClient, chatId: number, args: string): Promise<void> {
+  const signupId = await resolveSignup(sb, chatId);
+  if (!signupId) {
+    await tgSendMessage(chatId, "Connect first using your trial link.");
+    return;
+  }
+  const n = parseFloat(args);
+  if (!isFinite(n) || n <= 0) {
+    await tgSendMessage(chatId, "Usage: /yield 52  (bu/ac for the field you'll pick next)");
+    return;
+  }
+  const fields = await listFields(sb, signupId);
+  if (fields.length === 0) {
+    await tgSendMessage(chatId, "No fields yet — add one on your farmer dashboard first.");
+    return;
+  }
+  const keyboard = {
+    inline_keyboard: fields.map((f) => [{
+      text: `${f.label ?? "(unnamed)"} (${f.crop ?? "?"})`,
+      callback_data: `yield:${f.id}:${n}`,
+    }]),
+  };
+  await tgSendMessage(chatId, `Which field yielded ${n} bu/ac?`, { reply_markup: keyboard });
+}
+
+async function handleCallback(sb: SupabaseClient, cb: TgCallbackQuery): Promise<void> {
+  const chatIdRaw = cb.message?.chat?.id;
+  if (!chatIdRaw) {
+    await tgAnswerCallback(cb.id);
+    return;
+  }
+  const chatId = Number(chatIdRaw);
+  const signupId = await resolveSignup(sb, chatId);
+  if (!signupId) {
+    await tgSendMessage(chatId, "Connect first using your trial link.");
+    await tgAnswerCallback(cb.id);
+    return;
+  }
+
+  const [kind, fieldId, extra] = (cb.data ?? "").split(":");
+
+  if (kind === "apply" && fieldId) {
+    const { error } = await sb.schema("bio_trial").from("trial_events").insert({
+      signup_id: signupId,
+      field_id: fieldId,
+      kind: "application",
+      payload: { applied_at: new Date().toISOString() },
+      source: "telegram",
+    });
+    if (error && !isDuplicateKey(error)) {
+      console.error("application insert failed", error);
+      await tgSendMessage(chatId, "Couldn't save that — try again.");
+    } else {
+      await tgSendMessage(chatId, "Application logged ✓");
+    }
+  } else if (kind === "yield" && fieldId && extra) {
+    const bu = parseFloat(extra);
+    if (!isFinite(bu) || bu <= 0) {
+      await tgSendMessage(chatId, "Bad yield value — try /yield <number> again.");
+    } else {
+      const { error } = await sb.schema("bio_trial").from("trial_events").insert({
+        signup_id: signupId,
+        field_id: fieldId,
+        kind: "yield",
+        payload: { bu_per_ac: bu },
+        source: "telegram",
+      });
+      if (error && !isDuplicateKey(error)) {
+        console.error("yield insert failed", error);
+        await tgSendMessage(chatId, "Couldn't save that — try again.");
+      } else {
+        await tgSendMessage(chatId, `Yield saved: ${bu} bu/ac ✓`);
+      }
+    }
+  } else {
+    console.log("unknown callback payload", { data: cb.data });
+  }
+
+  await tgAnswerCallback(cb.id);
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
     return new Response("method not allowed", { status: 405 });
@@ -242,7 +374,10 @@ Deno.serve(async (req: Request) => {
     return new Response("forbidden", { status: 403 });
   }
 
-  let update: { message?: Record<string, unknown> };
+  let update: {
+    message?: Record<string, unknown>;
+    callback_query?: Record<string, unknown>;
+  };
   try {
     update = await req.json();
   } catch {
@@ -251,6 +386,12 @@ Deno.serve(async (req: Request) => {
 
   try {
     const sb = supa();
+
+    if (update.callback_query) {
+      await handleCallback(sb, update.callback_query as TgCallbackQuery);
+      return new Response("ok", { status: 200 });
+    }
+
     const msg = update.message as
       | {
           chat?: { id?: number };
@@ -268,8 +409,11 @@ Deno.serve(async (req: Request) => {
         await handlePhoto(sb, chatId, msg);
       } else if (text.startsWith("/start")) {
         await handleStart(sb, chatId, text.slice("/start".length).trim());
+      } else if (text.startsWith("/apply")) {
+        await handleApply(sb, chatId);
+      } else if (text.startsWith("/yield")) {
+        await handleYield(sb, chatId, text.slice("/yield".length).trim());
       } else if (text.startsWith("/")) {
-        // /apply, /yield wired in T17.
         console.log("unhandled command", { chatId, textPreview: text.slice(0, 120) });
       } else if (text.length > 0) {
         await handleObservation(sb, chatId, msg);
