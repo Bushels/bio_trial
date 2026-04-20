@@ -1,7 +1,7 @@
 # Trial Dashboard & Farmer Telegram Inbox — Design
 
 **Date:** 2026-04-19
-**Status:** Approved for implementation planning
+**Status:** Shipped 2026-04-19 (Telegram webhook registration pending Kyle's ops action — see T18 in the plan's progress log)
 **Depends on:** `bio_trial` schema live on Bushel Board Supabase (`ibgsloyjxdopkvwqcqwh`), `@BuperacTrialBot` already wired for outbound notifications.
 
 ## Goal
