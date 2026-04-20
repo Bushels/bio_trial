@@ -95,6 +95,81 @@ async function handleObservation(
   await tgSendMessage(chatId, "Saved ✓");
 }
 
+type TgPhotoSize = { file_id: string; width: number; height: number };
+
+async function handlePhoto(
+  sb: SupabaseClient,
+  chatId: number,
+  msg: { photo?: TgPhotoSize[]; caption?: string; message_id?: number },
+): Promise<void> {
+  const signupId = await resolveSignup(sb, chatId);
+  if (!signupId) {
+    await tgSendMessage(chatId, "Connect first using your trial link.");
+    return;
+  }
+
+  const photos = msg.photo ?? [];
+  if (photos.length === 0) return;
+  const best = photos.slice().sort((a, b) => (b.width * b.height) - (a.width * a.height))[0];
+
+  if (!TG_BOT_TOKEN) {
+    console.error("BIO_TRIAL_TG_BOT_TOKEN unset — cannot fetch photo bytes");
+    return;
+  }
+
+  // getFile -> tg-hosted path
+  const fileRes  = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/getFile?file_id=${encodeURIComponent(best.file_id)}`);
+  const fileJson = await fileRes.json().catch(() => null) as { ok?: boolean; result?: { file_path?: string } } | null;
+  if (!fileJson?.ok || !fileJson.result?.file_path) {
+    console.error("getFile failed", fileJson);
+    await tgSendMessage(chatId, "Couldn't fetch that photo — try again.");
+    return;
+  }
+  const tgPath = fileJson.result.file_path;
+
+  // Fetch bytes
+  const binRes = await fetch(`https://api.telegram.org/file/bot${TG_BOT_TOKEN}/${tgPath}`);
+  if (!binRes.ok) {
+    console.error("telegram file download failed", binRes.status);
+    await tgSendMessage(chatId, "Photo download failed — try again later.");
+    return;
+  }
+  const bytes = new Uint8Array(await binRes.arrayBuffer());
+  const ext   = (tgPath.split(".").pop() ?? "jpg").toLowerCase();
+  const storagePath = `${signupId}/${crypto.randomUUID()}.${ext}`;
+  const contentType = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : `image/${ext}`;
+
+  // Upload to private bucket
+  const { error: upErr } = await sb.storage
+    .from("trial-uploads")
+    .upload(storagePath, bytes, { contentType, upsert: false });
+  if (upErr) {
+    console.error("storage upload failed", upErr);
+    await tgSendMessage(chatId, "Photo upload failed — try again later.");
+    return;
+  }
+
+  // Record event
+  const { error: evtErr } = await sb
+    .schema("bio_trial")
+    .from("trial_events")
+    .insert({
+      signup_id: signupId,
+      kind: "photo",
+      payload: { caption: msg.caption ?? null },
+      source: "telegram",
+      telegram_message_id: msg.message_id ?? null,
+      file_urls: [storagePath],
+    });
+
+  if (evtErr && !isDuplicateKey(evtErr)) {
+    console.error("photo event insert failed", evtErr);
+    return;
+  }
+
+  await tgSendMessage(chatId, "Photo saved 📷");
+}
+
 async function handleStart(sb: SupabaseClient, chatId: number, args: string): Promise<void> {
   const signupId = args.trim();
   if (!UUID_RE.test(signupId)) {
@@ -177,13 +252,21 @@ Deno.serve(async (req: Request) => {
   try {
     const sb = supa();
     const msg = update.message as
-      | { chat?: { id?: number }; text?: string; message_id?: number }
+      | {
+          chat?: { id?: number };
+          text?: string;
+          message_id?: number;
+          photo?: TgPhotoSize[];
+          caption?: string;
+        }
       | undefined;
     if (msg && msg.chat?.id) {
       const chatId = Number(msg.chat.id);
       const text   = typeof msg.text === "string" ? msg.text : "";
 
-      if (text.startsWith("/start")) {
+      if (msg.photo && msg.photo.length > 0) {
+        await handlePhoto(sb, chatId, msg);
+      } else if (text.startsWith("/start")) {
         await handleStart(sb, chatId, text.slice("/start".length).trim());
       } else if (text.startsWith("/")) {
         // /apply, /yield wired in T17.
