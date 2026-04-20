@@ -92,7 +92,7 @@ Updated per task so this file is always the source of truth for where we are. Se
 | 3     | T10  | `public.farmer_register_event`                 | ✅     | `20260420000010_farmer_register_event` |
 | 3     | T11  | `bio-trial-farmer-upload-url` edge fn + `farmer_verify_token` wrapper | ✅ | **pivot** from SQL RPC — see T11 section. Migrations `…11_public_farmer_verify_token` + `…12_farmer_verify_token_swallow_errors`. Edge fn deployed `verify_jwt: false` v3. |
 | 4     | T12  | `public.get_trial_dashboard` (privacy floor ≥3)| ✅     | `20260420000013_get_trial_dashboard` (bumped past …11/…12 used by T11 wrappers). Adapted `s.province` → `s.province_state`. `STABLE` + `SECURITY DEFINER`. |
-| 5     | T13  | scaffold `bio-trial-telegram-webhook`          | ⬜     |  |
+| 5     | T13  | scaffold `bio-trial-farmer-inbox` (renamed)    | ✅     | Deployed v1, `verify_jwt: false`. 403-without-secret & 405-on-GET smoke tests pass. **Needs Kyle:** set `BIO_TRIAL_TG_WEBHOOK_SECRET` in Supabase Dashboard → Edge Functions → Secrets before T14 E2E test. |
 | 5     | T14  | `/start` binding                               | ⬜     |  |
 | 5     | T15  | text observations → `trial_events`             | ⬜     |  |
 | 5     | T16  | photo ingest → storage + `trial_events`        | ⬜     |  |
