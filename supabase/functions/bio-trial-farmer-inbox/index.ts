@@ -400,18 +400,35 @@ async function handleCallback(sb: SupabaseClient, cb: TgCallbackQuery): Promise<
   const [kind, fieldId, extra] = (cb.data ?? "").split(":");
 
   if (kind === "apply" && fieldId) {
-    const { error } = await sb.schema("bio_trial").from("trial_events").insert({
-      signup_id: signupId,
-      field_id: fieldId,
-      kind: "application",
-      payload: { applied_at: new Date().toISOString() },
-      source: "telegram",
-    });
-    if (error && !isDuplicateKey(error)) {
-      console.error("application insert failed", error);
-      await tgSendMessage(chatId, "Couldn't save that — try again.");
+    // Second tap: ask seed-treatment vs foliar-spray. One extra tap beats
+    // silently mis-tagging — scoreboard segmentation depends on it. The farmer
+    // explainer promises two methods; keep the keyboard aligned with that.
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: "Seed treatment", callback_data: `apply_method:${fieldId}:seed_treatment` }],
+        [{ text: "Foliar spray",   callback_data: `apply_method:${fieldId}:foliar_spray` }],
+      ],
+    };
+    await tgSendMessage(chatId, "How was it applied?", { reply_markup: keyboard });
+  } else if (kind === "apply_method" && fieldId && extra) {
+    if (extra !== "seed_treatment" && extra !== "foliar_spray") {
+      console.log("unknown apply method", { data: cb.data });
+      await tgSendMessage(chatId, "Unknown application method — try /apply again.");
     } else {
-      await tgSendMessage(chatId, "Application logged ✓");
+      const { error } = await sb.schema("bio_trial").from("trial_events").insert({
+        signup_id: signupId,
+        field_id: fieldId,
+        kind: "application",
+        payload: { applied_at: new Date().toISOString(), method: extra },
+        source: "telegram",
+      });
+      if (error && !isDuplicateKey(error)) {
+        console.error("application insert failed", error);
+        await tgSendMessage(chatId, "Couldn't save that — try again.");
+      } else {
+        const label = extra === "seed_treatment" ? "Seed treatment" : "Foliar spray";
+        await tgSendMessage(chatId, `${label} application logged ✓`);
+      }
     }
   } else if (kind === "yield" && fieldId && extra) {
     const bu = parseFloat(extra);
