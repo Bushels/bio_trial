@@ -467,7 +467,30 @@
     if (kind === "stand_count")    return payload.plants_per_m2 != null ? `${payload.plants_per_m2} plants/m²` : (payload.text || "");
     if (kind === "protein")        return payload.pct != null ? `${payload.pct}%` : (payload.text || "");
     if (kind === "soil_test")      return payload.text || "Soil test attached";
-    if (kind === "moisture_test")  return payload.pct != null ? `${payload.pct}% moisture` : (payload.text || "");
+    if (kind === "moisture_test") {
+      // Legacy rows used { pct } or { text } only — keep them readable.
+      const legacy =
+        payload.reading_type == null
+          ? (payload.pct != null ? `Moisture: ${payload.pct}%` : (payload.text || ""))
+          : null;
+      if (legacy != null) return legacy;
+
+      const { reading_type, value, unit, depth_in, qualitative, observed_on } = payload;
+      const when = observed_on ? ` on ${observed_on}` : "";
+      const unitLabel = unit === "pct" ? "%" : (unit ? ` ${unit}` : "");
+      if (reading_type === "crop") {
+        return value != null ? `Crop moisture: ${value}${unitLabel}${when}` : `Crop moisture${when}`;
+      }
+      if (reading_type === "soil") {
+        if (qualitative) return `Soil moisture: ${qualitative}${when}`;
+        const depth = depth_in != null ? ` at ${depth_in}in` : "";
+        return value != null ? `Soil moisture: ${value}${unitLabel}${depth}${when}` : `Soil moisture${when}`;
+      }
+      if (reading_type === "rainfall") {
+        return value != null ? `Rainfall: ${value}${unitLabel}${when}` : `Rainfall${when}`;
+      }
+      return payload.notes || payload.text || "";
+    }
     if (kind === "field_created")  return payload.label ? `Field added: ${payload.label}` : "";
     return payload.text || "";
   }
