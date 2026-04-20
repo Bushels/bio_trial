@@ -363,6 +363,12 @@ body[data-grain="off"]    .desk::before { display: none; }
   font-size: 16px;
   color: var(--graphite);
 }
+.acres-subtotal .acres-subtotal-note {
+  display: block;
+  font-size: 14px;
+  color: rgba(46, 46, 48, 0.7);
+  margin-top: 2px;
+}
 .acres-subtotal strong {
   color: var(--ink);
   font-family: "Permanent Marker", cursive;
@@ -586,32 +592,6 @@ body[data-grain="off"]    .desk::before { display: none; }
   border-radius: 2px;
   box-shadow: inset 0 1px 0 rgba(255,240,200,0.6), inset 0 -1px 2px rgba(0,0,0,0.4);
   transform: translateY(-4px);
-}
-
-.sim-btn {
-  font-family: "Caveat", cursive;
-  font-size: 18px;
-  color: var(--paper);
-  background: transparent;
-  border: 1px dashed rgba(245, 236, 214, 0.35);
-  padding: 6px 12px;
-  border-radius: 2px;
-  cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-  display: inline-flex; align-items: center; gap: 8px;
-  transform: rotate(-1.5deg);
-}
-.sim-btn:hover { opacity: 1; }
-.sim-btn .sim-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green);
-  animation: blink 2s infinite;
-}
-@keyframes blink {
-  0%, 70%, 100% { opacity: 1; }
-  80%, 90% { opacity: 0.3; }
 }
 
 /* =====================
@@ -1465,9 +1445,6 @@ form { position: relative; z-index: 2; }
           </div>
           <div class="odo-caption">ACRES · EST. 2026</div>
         </div>
-        <button class="sim-btn" id="simBtn" title="Simulate a new enrollment">
-          <span class="sim-dot"></span> simulate new signup
-        </button>
       </div>
     </section>
 
@@ -2032,8 +2009,8 @@ form { position: relative; z-index: 2; }
               </label>
             </div>
             <p class="acres-subtotal" id="acresSubtotal">
-              At $2.80/ac, your trial cost works out to <strong id="acresSubtotalAmt">—</strong>.
-              Order any volume you like — we'll confirm in follow-up.
+              At $2.80/ac, your trial cost works out to <strong id="acresSubtotalAmt">—</strong>
+              <span class="acres-subtotal-note">(plus delivery if shipped — we'll quote in follow-up).</span>
             </p>
 
             <fieldset class="logistics" style="margin-top:22px">

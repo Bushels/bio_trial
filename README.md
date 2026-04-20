@@ -21,7 +21,7 @@ Four RPCs exposed under `public.*` (the `bio_trial.*` schema stays isolated — 
 
 | Function | Caller | Use |
 |---|---|---|
-| `public.submit_bio_trial_signup(payload jsonb)` | anon | Inserts a signup row, returns the new total enrolled acres. Price is server-authoritative ($2.80/ac). |
+| `public.submit_bio_trial_signup(payload jsonb)` | anon | Inserts a signup row, returns the new total enrolled acres. Price is server-authoritative ($2.80/ac). If `logistics_method = 'ship'`, a delivery charge is quoted in follow-up — not captured on the form. |
 | `public.get_bio_trial_acres()` | anon | Returns current `sum(acres)` for the odometer. |
 | `public.list_bio_trial_signups()` | vendor-gated (`bio_trial.is_vendor()`) | Returns all signups as jsonb with computed `acres_from_liters`. |
 | `public.vendor_update_bio_trial_signup(p_signup_id uuid, p_patch jsonb)` | vendor-gated | Idempotent partial update. Allowed patch keys: `paid`, `liters`, `delivered`, `shipped`, `notes`. Timestamps stamp on `false → true` transitions; unknown keys fail closed. |

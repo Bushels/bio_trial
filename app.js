@@ -277,14 +277,6 @@
   }
 
   // ==============================================
-  // SIMULATE a new signup (button below odo)
-  // ==============================================
-  document.getElementById("simBtn").addEventListener("click", () => {
-    const bump = Math.floor(20 + Math.random() * 180); // 20-200 acres
-    rollTo(currentAcres + bump);
-  });
-
-  // ==============================================
   // FORM SUBMIT
   // ==============================================
   const form = document.getElementById("trialForm");
