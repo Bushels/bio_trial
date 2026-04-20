@@ -361,8 +361,7 @@
       }
       if (p.reading_type === "soil") {
         if (p.qualitative) return `Soil moisture: ${p.qualitative}${when}`;
-        const depth = p.depth_in != null ? ` at ${p.depth_in}in` : "";
-        return p.value != null ? `Soil moisture: ${p.value}${unitLabel}${depth}${when}` : `Soil moisture${when}`;
+        return p.value != null ? `Soil moisture depth: ${p.value}${unitLabel}${when}` : `Soil moisture${when}`;
       }
       if (p.reading_type === "rainfall") {
         return p.value != null ? `Rainfall: ${p.value}${unitLabel}${when}` : `Rainfall${when}`;

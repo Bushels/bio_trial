@@ -30,17 +30,26 @@
 ## Payload Shape (Reference)
 
 ```js
-// All moisture_test payloads after this PR:
+// All moisture_test payloads after this PR (post T8 reshape):
 {
   reading_type: "crop" | "soil" | "rainfall",   // required
   value: number,                                 // required EXCEPT when reading_type='soil' AND qualitative is set
-  unit: "pct" | "mm" | "in",                     // required with value. "pct" for crop/soil, "mm"|"in" for rainfall
-  depth_in: number | null,                       // optional, only meaningful for reading_type='soil'
-  qualitative: "dry" | "adequate" | "wet" | null, // optional, only for reading_type='soil' (alternative to value)
+                                                 //   - crop:     moisture percentage
+                                                 //   - soil:     moisture penetration depth (push-probe to refusal)
+                                                 //   - rainfall: rainfall amount
+  unit: "pct" | "mm" | "in",                     // crop → "pct"; soil → "in" (depth); rainfall → "mm"|"in"
+  qualitative: "dry" | "adequate" | "wet" | null, // only for reading_type='soil' (alternative to value)
   observed_on: "YYYY-MM-DD",                     // required; date the reading was taken
   notes: string                                  // optional free text
 }
 ```
+
+> **Note on soil moisture semantics (T8 fix):** Prairie farmers measure soil
+> moisture with a push-probe — a rod pushed into the ground until it hits dry
+> soil. The reading is the *depth of moisture penetration* in inches, not a
+> probe percentage at a fixed depth. The v1 draft inverted this; the
+> shipped shape puts depth directly in `value` with `unit: "in"`. No separate
+> `depth_in` field exists.
 
 **Legacy payloads that must keep rendering cleanly:**
 - `{ pct: 12 }` — from the old form path. Render as "Moisture: 12%".
@@ -620,4 +629,5 @@ Per `feedback_keep_plan_progress_log.md`: update this table per task (not per ph
 | T5   | Public activity feed: kindLabel + verbForKind wording        | ✅     | Committed as `8e1adf4`. Two entries added to the maps; payload never reaches DOM so no numeric leak.        |
 | T6   | README mention (only if stale)                               | ✅     | `grep -i moisture README.md` returned nothing — README doesn't surface event-kind specifics. No edit needed. |
 | T7   | End-to-end verification on Supabase (4 readings + legacy)    | ⚠️     | Partial — code-level verification only (parse all three JS files with `node --check`, cross-check 6 FormData names align between form and submit handler, diff-vs-base audit shows only 4 intended files touched). Live browser + Supabase runs against 4 readings + a legacy `{pct}` row deferred to post-merge smoke (subagent has no farmer token / live DB access). |
+| T8   | Soil-moisture semantic fix (depth-to-refusal, not % at depth)| ✅     | Pre-merge correction. Kyle caught that Prairie push-probe soil tests measure **how deep moisture penetrates** — the farmer pushes a rod until it hits dry soil and reads the inch scale. The v1 shape (`{value: 18.5, unit: "pct", depth_in: 12}`) reversed this and would have produced meaningless public numbers. Reshape: dropped the separate `depth_in` field; soil `value` IS the depth in inches; `unit` is fixed to `"in"` for soil. UI label flips to "Moisture depth" in soil mode; qualitative fallback (Dry / Adequate / Wet) preserved for farmers without a probe. Renders as "Soil moisture depth: 18in on 2026-07-15" in both farmer timeline and vendor events. Legacy `{pct}` / `{text}` rows still route through the null-check fallback unchanged. Parse clean in farmer.js + vendor.js. |
 | T8   | Open PR against feat/standalone-extraction                   | ✅     | [bio_trial#4](https://github.com/Bushels/bio_trial/pull/4) — base `feat/standalone-extraction`, head `claude/wizardly-sammet-a146a9`. |

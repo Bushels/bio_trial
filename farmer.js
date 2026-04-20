@@ -475,7 +475,7 @@
           : null;
       if (legacy != null) return legacy;
 
-      const { reading_type, value, unit, depth_in, qualitative, observed_on } = payload;
+      const { reading_type, value, unit, qualitative, observed_on } = payload;
       const when = observed_on ? ` on ${observed_on}` : "";
       const unitLabel = unit === "pct" ? "%" : (unit ? ` ${unit}` : "");
       if (reading_type === "crop") {
@@ -483,8 +483,8 @@
       }
       if (reading_type === "soil") {
         if (qualitative) return `Soil moisture: ${qualitative}${when}`;
-        const depth = depth_in != null ? ` at ${depth_in}in` : "";
-        return value != null ? `Soil moisture: ${value}${unitLabel}${depth}${when}` : `Soil moisture${when}`;
+        // For soil, value is moisture penetration depth; unit is always "in".
+        return value != null ? `Soil moisture depth: ${value}${unitLabel}${when}` : `Soil moisture${when}`;
       }
       if (reading_type === "rainfall") {
         return value != null ? `Rainfall: ${value}${unitLabel}${when}` : `Rainfall${when}`;
@@ -639,17 +639,6 @@
     mUnitLab.appendChild(mUnitSel);
     mValRow.appendChild(mUnitLab);
 
-    const mDepthLab = document.createElement("label");
-    mDepthLab.textContent = "Depth (in)";
-    const mDepthInp = document.createElement("input");
-    mDepthInp.type = "number";
-    mDepthInp.step = "1";
-    mDepthInp.min = "0";
-    mDepthInp.name = "moisture_depth_in";
-    mDepthInp.placeholder = "optional, e.g. 12";
-    mDepthLab.appendChild(mDepthInp);
-    mValRow.appendChild(mDepthLab);
-
     moistureBlock.appendChild(mValRow);
 
     const mQualRow = document.createElement("div");
@@ -675,16 +664,23 @@
 
     function refreshMoistureFields() {
       const rt = mTypeSel.value;
-      // Unit options per reading type.
+      // Unit options per reading type. For soil the value IS the moisture
+      // penetration depth (push-probe to refusal), so unit is fixed to
+      // inches — we do not capture probe-%-at-depth readings in v1.
       mUnitSel.replaceChildren();
-      const units = rt === "rainfall" ? [["mm", "mm"], ["in", "in"]] : [["pct", "%"]];
+      const units =
+        rt === "rainfall" ? [["mm", "mm"], ["in", "in"]]
+        : rt === "soil"   ? [["in",  "in"]]
+        :                   [["pct", "%"]];
       for (const [v, t] of units) {
         const opt = document.createElement("option");
         opt.value = v; opt.textContent = t;
         mUnitSel.appendChild(opt);
       }
-      // Depth field only meaningful for soil probes.
-      mDepthLab.hidden = rt !== "soil";
+      // Value label changes for soil — farmers think "how deep does the probe go?"
+      // not "what's the moisture value?"
+      mValLab.firstChild.nodeValue = rt === "soil" ? "Moisture depth" : "Value";
+      mValInp.placeholder = rt === "soil" ? "e.g. 18" : "e.g. 12.5";
       // Qualitative fallback only for soil-without-probe.
       mQualRow.hidden = rt !== "soil";
       // Value is required for crop/rainfall; for soil it's required UNLESS qualitative is set.
@@ -811,14 +807,15 @@
           const obsOn    = String(fd.get("moisture_observed_on") || "");
           const valueRaw = String(fd.get("moisture_value") || "").trim();
           const unit     = String(fd.get("moisture_unit") || "");
-          const depthRaw = String(fd.get("moisture_depth_in") || "").trim();
           const qual     = String(fd.get("moisture_qualitative") || "");
 
           if (!rt)    throw new Error("Pick a moisture reading type (crop / soil / rainfall).");
           if (!obsOn) throw new Error("Pick the date the reading was taken.");
 
           // Soil can substitute a qualitative bucket for a numeric reading;
-          // crop and rainfall must have a number.
+          // crop and rainfall must have a number. For soil, the numeric value
+          // IS the moisture penetration depth in inches — not a probe % at a
+          // depth. The user-facing label ("Moisture depth") reflects this.
           const hasQual = rt === "soil" && qual !== "";
           let value = null;
           if (!hasQual) {
@@ -826,27 +823,25 @@
             if (!isFinite(n) || n <= 0) {
               throw new Error(
                 rt === "soil"
-                  ? "Enter a soil-probe reading, or pick Dry/Adequate/Wet if you don't have a probe."
+                  ? "Enter the moisture depth in inches, or pick Dry/Adequate/Wet if you don't have a probe."
                   : "Enter a numeric moisture value."
               );
             }
             value = n;
           }
 
-          // Normalize unit per reading type.
-          const expectedUnits = rt === "rainfall" ? ["mm", "in"] : ["pct"];
+          // Normalize unit per reading type. Soil is always inches (depth);
+          // rainfall lets the farmer pick mm or in; crop is always %.
+          const expectedUnits =
+            rt === "rainfall" ? ["mm", "in"]
+            : rt === "soil"   ? ["in"]
+            :                   ["pct"];
           const finalUnit = hasQual ? null : (expectedUnits.includes(unit) ? unit : expectedUnits[0]);
-
-          const depth_in = rt === "soil" && depthRaw !== "" ? Number(depthRaw) : null;
-          if (depth_in != null && (!isFinite(depth_in) || depth_in < 0)) {
-            throw new Error("Depth must be a non-negative number of inches.");
-          }
 
           payload = {
             reading_type: rt,
             value: value,
             unit: finalUnit,
-            depth_in: depth_in,
             qualitative: hasQual ? qual : null,
             observed_on: obsOn,
             notes: note || "",
