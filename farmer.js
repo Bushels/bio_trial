@@ -628,6 +628,16 @@
           throw new Error("Attach a photo before logging a Photo event.");
         }
 
+        // A yield event without a field can't land in any per-crop/per-tier
+        // bucket on the public scoreboard (get_trial_dashboard joins on
+        // trial_fields), but it DID pad the headline "Yield reports" tile —
+        // the aggregate and the count disagreed. Reject field-less yields at
+        // submit so the two sides stay consistent. The RPC enforces the same
+        // check server-side in 20260420000007_yield_field_required_and_hide_tiered.sql.
+        if (kind === "yield" && !fieldId) {
+          throw new Error("Pick the field this yield came from — yields need a field to be counted on the scoreboard.");
+        }
+
         // Strip/split deltas depend on knowing which plot each yield came from.
         // If the field has plots and the farmer didn't pick one, reject.
         if (kind === "yield" && fieldId) {

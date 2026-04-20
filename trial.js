@@ -135,12 +135,14 @@
   // parses those numbers and swaps the text for the CONFIDENTIAL seal
   // with a privacy-meter dot progress bar.
   //
-  // byTier: rows shaped {crop, tier, avg_yield, farms} — preferred when
-  //   non-empty because it keeps observational yields from being mixed with
-  //   controlled-trial yields in the averaged numbers.
+  // byTier: rows shaped {crop, tier, avg_yield, farms}. The RPC currently
+  //   returns this as an empty array for launch
+  //   (20260420000007_yield_field_required_and_hide_tiered.sql) because
+  //   the old implementation mixed treated and check plots inside a tier.
+  //   The wiring stays so we can re-enable once role-aware delta math
+  //   ships, without another frontend change.
   // flatList: rows shaped {crop, avg_yield, farms} — the legacy view,
-  //   shown only as a fallback when no tier-segmented rows passed the
-  //   ≥ 3-farm privacy floor.
+  //   rendered for now.
   function renderAggregates(byTier, flatList, headline, floor) {
     const host = document.getElementById("aggregates");
     host.replaceChildren();

@@ -94,6 +94,40 @@ async function listFields(sb: SupabaseClient, signupId: string): Promise<TgField
   return (data ?? []) as TgField[];
 }
 
+// Telegram /yield can't ask farmers to pick a plot (no multi-step state), so
+// fields that have real (non-virtual) STRIP/SPLIT plots must be handled on the
+// web form where the farmer.js plot picker is enforced. This helper returns the
+// set of field_ids (from the given list) that currently have at least one real
+// plot — callers filter the yield picker against it and the callback gates
+// against it too, as a second defense.
+async function fieldsWithRealPlots(
+  sb: SupabaseClient,
+  fieldIds: string[],
+): Promise<Set<string>> {
+  if (fieldIds.length === 0) return new Set();
+  const { data, error } = await sb
+    .schema("bio_trial")
+    .from("trial_plots")
+    .select("field_id")
+    .in("field_id", fieldIds)
+    .eq("is_virtual", false);
+  if (error) {
+    console.error("fieldsWithRealPlots failed", error);
+    // Fail closed — if we can't verify, assume every field has plots and push
+    // the farmer to the web form. Better to be annoying than to record an
+    // ambiguous yield in a STRIP trial.
+    return new Set(fieldIds);
+  }
+  const out = new Set<string>();
+  for (const row of (data ?? []) as { field_id: string }[]) {
+    out.add(row.field_id);
+  }
+  return out;
+}
+
+const TG_YIELD_WEB_HINT =
+  "This field has strip/split plots, so yields need to go through your farmer dashboard (the link we texted you at signup) — that's where you pick which plot the yield came from.";
+
 async function tgAnswerCallback(callbackQueryId: string): Promise<void> {
   if (!TG_BOT_TOKEN) return;
   const res = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/answerCallbackQuery`, {
@@ -324,13 +358,29 @@ async function handleYield(sb: SupabaseClient, chatId: number, args: string): Pr
     await tgSendMessage(chatId, "No fields yet — add one on your farmer dashboard first.");
     return;
   }
+
+  // Fields with real (non-virtual) plots need plot-level attribution that
+  // Telegram's one-tap keyboard can't collect. Hide them from the picker and,
+  // if the farmer has no yield-eligible fields left, tell them where to go.
+  const plotFieldIds = await fieldsWithRealPlots(sb, fields.map((f) => f.id));
+  const eligible = fields.filter((f) => !plotFieldIds.has(f.id));
+
+  if (eligible.length === 0) {
+    await tgSendMessage(chatId, TG_YIELD_WEB_HINT);
+    return;
+  }
+
   const keyboard = {
-    inline_keyboard: fields.map((f) => [{
+    inline_keyboard: eligible.map((f) => [{
       text: `${f.label ?? "(unnamed)"} (${f.crop ?? "?"})`,
       callback_data: `yield:${f.id}:${n}`,
     }]),
   };
-  await tgSendMessage(chatId, `Which field yielded ${n} bu/ac?`, { reply_markup: keyboard });
+  const skipped = fields.length - eligible.length;
+  const note = skipped > 0
+    ? ` (${skipped} strip/split field${skipped === 1 ? "" : "s"} hidden — log those on the web dashboard)`
+    : "";
+  await tgSendMessage(chatId, `Which field yielded ${n} bu/ac?${note}`, { reply_markup: keyboard });
 }
 
 async function handleCallback(sb: SupabaseClient, cb: TgCallbackQuery): Promise<void> {
@@ -368,18 +418,27 @@ async function handleCallback(sb: SupabaseClient, cb: TgCallbackQuery): Promise<
     if (!isFinite(bu) || bu <= 0) {
       await tgSendMessage(chatId, "Bad yield value — try /yield <number> again.");
     } else {
-      const { error } = await sb.schema("bio_trial").from("trial_events").insert({
-        signup_id: signupId,
-        field_id: fieldId,
-        kind: "yield",
-        payload: { bu_per_ac: bu },
-        source: "telegram",
-      });
-      if (error && !isDuplicateKey(error)) {
-        console.error("yield insert failed", error);
-        await tgSendMessage(chatId, "Couldn't save that — try again.");
+      // Second defense: re-check at tap time. A field could have gained plots
+      // between /yield dispatch and the callback, or a stale callback_data
+      // payload could land here. Either way, refuse rather than record an
+      // ambiguous strip/split yield.
+      const plotFieldIds = await fieldsWithRealPlots(sb, [fieldId]);
+      if (plotFieldIds.has(fieldId)) {
+        await tgSendMessage(chatId, TG_YIELD_WEB_HINT);
       } else {
-        await tgSendMessage(chatId, `Yield saved: ${bu} bu/ac ✓`);
+        const { error } = await sb.schema("bio_trial").from("trial_events").insert({
+          signup_id: signupId,
+          field_id: fieldId,
+          kind: "yield",
+          payload: { bu_per_ac: bu },
+          source: "telegram",
+        });
+        if (error && !isDuplicateKey(error)) {
+          console.error("yield insert failed", error);
+          await tgSendMessage(chatId, "Couldn't save that — try again.");
+        } else {
+          await tgSendMessage(chatId, `Yield saved: ${bu} bu/ac ✓`);
+        }
       }
     }
   } else {

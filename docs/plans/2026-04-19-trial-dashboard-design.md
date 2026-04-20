@@ -1,7 +1,7 @@
 # Trial Dashboard & Farmer Telegram Inbox — Design
 
 **Date:** 2026-04-19
-**Status:** Shipped 2026-04-19 (Telegram webhook registration pending Kyle's ops action — see T18 in the plan's progress log)
+**Status:** Shipped 2026-04-19; post-ship Codex-audit extensions shipped 2026-04-20 (Telegram webhook registration still pending Kyle's ops action — see T18 in the plan's progress log). See **Post-ship extensions** at the bottom of this file for what changed after launch and why.
 **Depends on:** `bio_trial` schema live on Bushel Board Supabase (`ibgsloyjxdopkvwqcqwh`), `@BuperacTrialBot` already wired for outbound notifications.
 
 ## Goal
@@ -214,3 +214,54 @@ Webhook registered once via `setWebhook` API call (one-time setup step).
 ## Cost impact
 
 Zero new paid services. Supabase Storage is ~1 GB free on Pro (we're on Pro). Telegram is free. Vercel is free. The $10/mo we avoided by keeping the schema on Bushel Board is still avoided.
+
+---
+
+## Post-ship extensions (2026-04-20)
+
+After the 2026-04-19 ship, Codex ran a cold-read audit against `BioLift_Cooperator_Trial_Spec_v1.md` and flagged three gaps between shipped and spec. All three are now closed. This section records what changed, why, and where each piece lives. Migrations referenced by number below live in [`supabase/migrations/`](../../supabase/migrations/).
+
+### Codex item #1 — Git-as-source-of-truth
+
+Several RPCs (`farmer_bootstrap`, `farmer_upsert_field`, `farmer_register_event`, `farmer_verify_token`, the JWT helpers, `vendor_list_trial_events`, `vendor_unbind_farmer_telegram`) existed in the live Bushel Board DB but had never been committed to `supabase/migrations/`. A fresh project bootstrap (e.g. the standalone extraction planned in [`2026-04-19-bio-trial-standalone-design.md`](2026-04-19-bio-trial-standalone-design.md)) could not have reproduced prod.
+
+**Fix:** `20260420000002_bio_trial_farmer_catchup.sql` codifies the live state idempotently — safe to re-apply against Bushel Board (no-op) and correct-on-first-run against a greenfield project.
+
+### Codex item #3 — Public photo consent
+
+Spec §7 promises farmers per-photo control over whether a photo surfaces publicly. Shipped v1 surfaced every `kind='photo'` event on `/trial` regardless. The data column existed (`trial_events.public_opt_in`) but nothing wrote it.
+
+**Fix:** `20260420000001_bio_trial_dashboard_expand.sql` wires `get_trial_dashboard` to filter on `public_opt_in = true`. The `farmer_register_event` RPC gained `p_public_opt_in boolean DEFAULT false` (in `20260420000002`), and `farmer.js` shows a per-event "Show on public dashboard" checkbox when `kind='photo'`. Default off — opt-in, not opt-out.
+
+### Codex item #3a — Spec §5 trial types, plots, and rigor tiers
+
+Spec §5 defines five trial designs (STRIP / SPLIT / WHOLE_HISTORICAL / WHOLE_NEIGHBOR / OBSERVATIONAL) with paired treated/check plots, including virtual checks (a historical-yield average for WHOLE_HISTORICAL, a neighbor field for WHOLE_NEIGHBOR). Shipped v1 had only flat `trial_fields` + `trial_events`, which meant the public dashboard could only average raw `bu_per_ac` per crop — treated and check blended together.
+
+This is the biggest post-ship extension. It touches schema, RPCs, and both UIs:
+
+1. **Schema (`20260420000003_trial_types_and_plots.sql`)** — adds `trial_fields.trial_type` (+ supporting `historical_yield_bu_per_ac`, `historical_years_source`, `neighbor_field_notes`, `trial_type_declared_at`), a new `bio_trial.trial_plots` table with `role ∈ {treated, check}` and `is_virtual` flag, and `trial_events.plot_id` FK. All additions are nullable so existing rows remain valid.
+
+2. **RPCs (`20260420000004_trial_types_rpcs.sql`)** —
+   - `farmer_set_trial_type(token, field_id, type, extras)` — declares type, seeds a sensible default plot set if none exist, emits a `trial_type_declared` event. Never destroys existing plots.
+   - `farmer_upsert_plot(token, field_id, patch)` — escape hatch for custom labels / >2 strips. Cannot create virtual plots (those flow only from `farmer_set_trial_type`, because they feed scoreboard math).
+   - `farmer_register_event` grows to 7 args (`+p_public_opt_in, +p_plot_id`). Required an explicit `DROP FUNCTION` before the `CREATE OR REPLACE` because Postgres treats a new arg count as an overload, not a replacement.
+   - `farmer_bootstrap` now returns `plots` alongside `fields`/`events`.
+
+3. **Rigor tiers on the public dashboard (`20260420000005_dashboard_trial_tiers.sql`)** — `get_trial_dashboard` returns `rigor_tier_counts` in the headline (controlled / referenced / observational / undeclared) and originally returned a tier-segmented aggregates array.
+
+4. **Constraint relaxation (`20260420000006_relax_trial_plots_acres.sql`)** — Codex's own follow-up caught that `20260420000003` had shipped with a `CHECK (is_virtual OR acres IS NOT NULL)` that collided with the `farmer_set_trial_type` seeding flow — farmers declare trial type before they've measured strip acreage, and a fake half-field default acreage would silently corrupt per-acre yield math worse than NULL would. Forward-only drop of the constraint + source edit in `003` so a fresh DB doesn't re-create it.
+
+5. **Yield-field invariant + tiered aggregates disabled for launch (`20260420000007_yield_field_required_and_hide_tiered.sql`)** — a "next audit" found two related issues:
+   - **Headline vs aggregate disagreement.** `yields_count` was counting every `kind='yield'` row, but the per-crop aggregate joins `trial_fields` so it drops field-less yields. Two public numbers could disagree. Fix: `farmer_register_event` now raises if `p_kind='yield'` and `p_field_id IS NULL` (both SQL and `farmer.js` enforce), and `yields_count` tightens to `kind='yield' AND field_id IS NOT NULL`.
+   - **Tiered aggregates were dishonest.** The v1 tier-segmented aggregate averaged raw `bu_per_ac` per `(crop, tier)` without joining `trial_plots.role`, so STRIP/SPLIT trials published a blended treated+check mean under "Controlled". `get_trial_dashboard` now returns `aggregates_by_tier: []` (empty array, not removed — the frontend wiring stays, so re-enabling is a migration-only change). `trial.js` falls back to the flat per-crop table.
+
+6. **Telegram `/yield` routing** — fields with real (non-virtual) plots need plot-level attribution that a one-tap inline keyboard can't collect. `bio-trial-farmer-inbox/index.ts` hides such fields from the `/yield` picker and tells the farmer to log the yield on the web dashboard; a second defense re-checks at tap time against the live plots.
+
+### Still deferred to v2 (from this audit round)
+
+- **Role-aware tiered aggregates.** Re-enabling `aggregates_by_tier` requires per-field delta math: `avg(treated bu_per_ac) − avg(check bu_per_ac)` for each field, including virtual checks for WHOLE_*, then average those per-field deltas across farms with the ≥3-farm privacy floor. Observational has no check so produces no delta. Its own migration, its own review.
+- **Telegram `/plot` and multi-step `/yield`.** Would lift the "log strip/split yields on the web" restriction, but needs conversational state (the bot currently has none) — not worth it for v2.
+
+### What this changes for standalone extraction
+
+The standalone-extraction plan ([`2026-04-19-bio-trial-standalone-plan.md`](2026-04-19-bio-trial-standalone-plan.md)) still applies. The only delta is that migrations `20260420000001` through `20260420000007` must be applied in order against the new project, and migration 002 serves its intended purpose (reproducing live state) on that fresh DB.
