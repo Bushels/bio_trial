@@ -458,11 +458,26 @@
     }
   }
 
+  const APPLICATION_METHOD_LABELS = {
+    seed_treatment: "Seed treatment",
+    foliar_spray:   "Foliar spray",
+  };
+
+  function formatApplicationSummary(payload) {
+    if (!payload) return "";
+    const when = payload.applied_at ? new Date(payload.applied_at).toLocaleString() : "";
+    const label = APPLICATION_METHOD_LABELS[payload.method];
+    if (label && when) return `${label} applied on ${when}`;
+    if (label)         return `${label} applied`;
+    if (when)          return `Applied ${when}`;
+    return "";
+  }
+
   function summarizePayload(kind, payload) {
     if (!payload || typeof payload !== "object") return "";
     if (kind === "observation")    return payload.text || "";
     if (kind === "yield")          return payload.bu_per_ac != null ? `${payload.bu_per_ac} bu/ac` : "";
-    if (kind === "application")    return payload.applied_at ? `Applied ${new Date(payload.applied_at).toLocaleString()}` : "";
+    if (kind === "application")    return formatApplicationSummary(payload);
     if (kind === "photo")          return payload.caption || "";
     if (kind === "stand_count")    return payload.plants_per_m2 != null ? `${payload.plants_per_m2} plants/m²` : (payload.text || "");
     if (kind === "protein")        return payload.pct != null ? `${payload.pct}%` : (payload.text || "");
@@ -488,6 +503,7 @@
     kindSel.name = "kind";
     for (const [v, t] of [
       ["observation",   "Observation (note)"],
+      ["application",   "Application (product applied)"],
       ["photo",         "Photo"],
       ["yield",         "Yield (bu/ac)"],
       ["soil_test",     "Soil test"],
@@ -530,6 +546,28 @@
     plotLab.appendChild(plotSel);
     selRow.appendChild(plotLab);
 
+    // Method picker — only shown for kind=application. Two user-facing values
+    // keep Telegram's one-hand-in-the-truck flow sane; the farmer explainer
+    // §4–5 promises exactly these two. Spec §6.6 permits richer seed/in_furrow/foliar
+    // but we collapse to seed_treatment/foliar_spray everywhere the farmer touches.
+    const methodLab = document.createElement("label");
+    methodLab.textContent = "Application method";
+    methodLab.hidden = true;
+    const methodSel = document.createElement("select");
+    methodSel.name = "application_method";
+    for (const [v, t] of [
+      ["",               "— pick one —"],
+      ["seed_treatment", "Seed treatment (in-furrow or on-seed at seeding)"],
+      ["foliar_spray",   "Foliar spray (applied to canopy in-season)"],
+    ]) {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = t;
+      methodSel.appendChild(opt);
+    }
+    methodLab.appendChild(methodSel);
+    selRow.appendChild(methodLab);
+
     function refreshPlotOptions() {
       const fieldId = fieldSel.value || null;
       const realPlots = fieldId
@@ -554,6 +592,13 @@
     }
     fieldSel.addEventListener("change", refreshPlotOptions);
     kindSel.addEventListener("change", refreshPlotOptions);
+
+    function refreshMethodVisibility() {
+      const show = kindSel.value === "application";
+      methodLab.hidden = !show;
+      if (!show) methodSel.value = "";
+    }
+    kindSel.addEventListener("change", refreshMethodVisibility);
 
     form.appendChild(selRow);
 
@@ -656,6 +701,13 @@
             throw new Error("Enter bushels per acre as a number in Notes / value.");
           }
           payload = { bu_per_ac: num };
+        } else if (kind === "application") {
+          const method = String(fd.get("application_method") || "");
+          if (!method) {
+            throw new Error("Pick an application method (seed treatment or foliar spray).");
+          }
+          payload = { applied_at: new Date().toISOString(), method };
+          if (note) payload.text = note;
         } else {
           payload = { text: note };
         }

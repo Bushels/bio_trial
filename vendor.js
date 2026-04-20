@@ -345,7 +345,16 @@
     const p = e.payload || {};
     if (e.kind === "observation")    return p.text || "";
     if (e.kind === "yield")          return p.bu_per_ac != null ? `${p.bu_per_ac} bu/ac` : (p.text || "");
-    if (e.kind === "application")    return p.applied_at ? `Applied ${new Date(p.applied_at).toLocaleString()}` : (p.text || "");
+    if (e.kind === "application") {
+      const methodLabel = p.method === "seed_treatment" ? "Seed treatment"
+                        : p.method === "foliar_spray"   ? "Foliar spray"
+                        : null;
+      const when = p.applied_at ? new Date(p.applied_at).toLocaleString() : "";
+      if (methodLabel && when) return `${methodLabel} applied on ${when}`;
+      if (methodLabel)         return `${methodLabel} applied`;
+      if (when)                return `Applied ${when}`;
+      return p.text || "";
+    }
     if (e.kind === "photo")          return p.caption || "(photo)";
     if (e.kind === "field_created")  return p.label ? `Field: ${p.label}` : "";
     if (e.kind === "stand_count")    return p.plants_per_m2 != null ? `${p.plants_per_m2} plants/m²` : (p.text || "");
