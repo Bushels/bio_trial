@@ -43,6 +43,58 @@ async function tgSendMessage(
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+async function resolveSignup(sb: SupabaseClient, chatId: number): Promise<string | null> {
+  const { data, error } = await sb
+    .schema("bio_trial")
+    .from("signups")
+    .select("id")
+    .eq("farmer_telegram_chat_id", chatId)
+    .maybeSingle();
+  if (error) {
+    console.error("resolveSignup failed", error);
+    return null;
+  }
+  return data?.id ?? null;
+}
+
+// `signups.telegram_message_id` has a UNIQUE partial index, so Telegram retries on timeout
+// land as 23505 conflicts — treated as success (message already logged).
+function isDuplicateKey(err: { code?: string; message?: string } | null | undefined): boolean {
+  if (!err) return false;
+  return err.code === "23505" || /duplicate key|already exists/i.test(err.message ?? "");
+}
+
+async function handleObservation(
+  sb: SupabaseClient,
+  chatId: number,
+  msg: { text?: string; message_id?: number },
+): Promise<void> {
+  const signupId = await resolveSignup(sb, chatId);
+  if (!signupId) {
+    await tgSendMessage(chatId, "You're not connected yet. Use your trial link from the delivery email.");
+    return;
+  }
+
+  const { error } = await sb
+    .schema("bio_trial")
+    .from("trial_events")
+    .insert({
+      signup_id: signupId,
+      kind: "observation",
+      payload: { text: msg.text ?? "" },
+      source: "telegram",
+      telegram_message_id: msg.message_id ?? null,
+    });
+
+  if (error && !isDuplicateKey(error)) {
+    console.error("observation insert failed", error);
+    await tgSendMessage(chatId, "Couldn't save that — try again in a sec.");
+    return;
+  }
+
+  await tgSendMessage(chatId, "Saved ✓");
+}
+
 async function handleStart(sb: SupabaseClient, chatId: number, args: string): Promise<void> {
   const signupId = args.trim();
   if (!UUID_RE.test(signupId)) {
@@ -133,9 +185,13 @@ Deno.serve(async (req: Request) => {
 
       if (text.startsWith("/start")) {
         await handleStart(sb, chatId, text.slice("/start".length).trim());
+      } else if (text.startsWith("/")) {
+        // /apply, /yield wired in T17.
+        console.log("unhandled command", { chatId, textPreview: text.slice(0, 120) });
+      } else if (text.length > 0) {
+        await handleObservation(sb, chatId, msg);
       } else {
-        // Routed in T15-T17.
-        console.log("unhandled update", { chatId, textPreview: text.slice(0, 120) });
+        console.log("unhandled non-text update", { chatId });
       }
     }
   } catch (err) {
