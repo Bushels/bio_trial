@@ -51,14 +51,28 @@
   function renderAll(state) {
     renderSignup(state.signup);
     renderTelegramCta(state);
-    renderFields(state.fields || []);
+    renderFields(state.fields || [], state.plots || []);
     renderTimeline(state.events || []);
-    renderEventForm(state.fields || []);
+    renderEventForm(state.fields || [], state.plots || []);
     document.getElementById("signupSummary").hidden = false;
     document.getElementById("telegramSection").hidden = false;
     document.getElementById("fieldsSection").hidden = false;
     document.getElementById("eventSection").hidden = false;
     document.getElementById("timelineSection").hidden = false;
+  }
+
+  // Spec §5 trial designs in declared order, most rigorous first. The tier
+  // label drives the badge on each field and on the public scoreboard.
+  const TRIAL_TYPE_INFO = {
+    STRIP:             { tier: "controlled",    blurb: "Side-by-side treated/untreated strips in the same field" },
+    SPLIT:             { tier: "controlled",    blurb: "Treated half vs untreated half of the same field" },
+    WHOLE_HISTORICAL:  { tier: "referenced",    blurb: "Whole field vs your 3-year historical yield" },
+    WHOLE_NEIGHBOR:    { tier: "referenced",    blurb: "Whole field vs an untreated neighbor field" },
+    OBSERVATIONAL:     { tier: "observational", blurb: "Whole field, no check — directional only" },
+  };
+
+  function plotsForField(plots, fieldId) {
+    return (plots || []).filter((p) => p.field_id === fieldId);
   }
 
   function renderSignup(s) {
@@ -111,7 +125,7 @@
     host.appendChild(a);
   }
 
-  function renderFields(fields) {
+  function renderFields(fields, plots) {
     const host = document.getElementById("fieldsList");
     if (!host) return;
     host.replaceChildren();
@@ -126,8 +140,11 @@
       const card = document.createElement("div");
       card.style.padding = "10px 0";
       card.style.borderBottom = "1px solid #eee";
+
       const title = document.createElement("strong");
       title.textContent = `${f.label} · ${f.crop ?? "?"}${f.prev_crop ? ` (prev: ${f.prev_crop})` : ""}`;
+      card.appendChild(title);
+
       const meta = document.createElement("div");
       meta.className = "muted";
       const bits = [
@@ -135,10 +152,187 @@
         f.application_method ? f.application_method.replace(/_/g, " ") : null,
       ].filter(Boolean);
       meta.textContent = bits.length ? bits.join(" · ") : "no details";
-      card.appendChild(title);
       card.appendChild(meta);
+
+      // Trial-type row: either a badge ("STRIP · controlled") or a declare-CTA.
+      const typeRow = document.createElement("div");
+      typeRow.style.marginTop = "6px";
+      if (f.trial_type) {
+        const info = TRIAL_TYPE_INFO[f.trial_type] || { tier: "—", blurb: "" };
+        const badge = document.createElement("span");
+        badge.className = "kind-badge";
+        badge.textContent = `${f.trial_type.replace(/_/g, " ")} · ${info.tier}`;
+        typeRow.appendChild(badge);
+        if (info.blurb) {
+          const blurb = document.createElement("span");
+          blurb.className = "muted";
+          blurb.style.marginLeft = "8px";
+          blurb.textContent = info.blurb;
+          typeRow.appendChild(blurb);
+        }
+      } else {
+        const warn = document.createElement("span");
+        warn.className = "muted";
+        warn.textContent = "No trial type declared yet.";
+        typeRow.appendChild(warn);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = "Declare trial type";
+        btn.style.marginLeft = "8px";
+        btn.addEventListener("click", () => openTrialTypeForm(card, f));
+        typeRow.appendChild(btn);
+      }
+      card.appendChild(typeRow);
+
+      // Plots list — real plots get acres, virtual plots get their reference.
+      const myPlots = plotsForField(plots, f.id);
+      if (myPlots.length > 0) {
+        const plotsWrap = document.createElement("div");
+        plotsWrap.style.marginTop = "6px";
+        const plotsHead = document.createElement("div");
+        plotsHead.className = "muted";
+        plotsHead.textContent = "Plots:";
+        plotsWrap.appendChild(plotsHead);
+        const ul = document.createElement("ul");
+        ul.style.margin = "4px 0 0 18px";
+        for (const p of myPlots) {
+          const li = document.createElement("li");
+          const bits2 = [
+            p.role,
+            p.is_virtual ? "virtual" : (p.acres ? `${p.acres} ac` : null),
+            p.is_virtual && p.historical_yield_bu_per_ac != null ? `${p.historical_yield_bu_per_ac} bu/ac hist.` : null,
+            p.is_virtual && p.neighbor_reference ? `neighbor: ${p.neighbor_reference}` : null,
+          ].filter(Boolean);
+          li.textContent = `${p.label} (${bits2.join(" · ")})`;
+          ul.appendChild(li);
+        }
+        plotsWrap.appendChild(ul);
+        card.appendChild(plotsWrap);
+      }
+
       host.appendChild(card);
     }
+  }
+
+  function openTrialTypeForm(anchorCard, field) {
+    // Toggle — clicking Declare again closes the form.
+    const existing = anchorCard.querySelector("[data-trial-type-form]");
+    if (existing) {
+      existing.remove();
+      return;
+    }
+    anchorCard.appendChild(buildTrialTypeForm(field));
+  }
+
+  function buildTrialTypeForm(field) {
+    const form = document.createElement("form");
+    form.setAttribute("data-trial-type-form", "1");
+    form.style.marginTop = "8px";
+    form.style.padding = "8px";
+    form.style.background = "#fafafa";
+    form.style.border = "1px solid #eee";
+    form.style.borderRadius = "4px";
+
+    const selRow = document.createElement("div");
+    selRow.className = "row";
+    const selLab = document.createElement("label");
+    selLab.textContent = `Trial type for ${field.label}`;
+    const sel = document.createElement("select");
+    sel.name = "trial_type";
+    const emptyOpt = document.createElement("option");
+    emptyOpt.value = "";
+    emptyOpt.textContent = "— choose —";
+    sel.appendChild(emptyOpt);
+    for (const [v, info] of Object.entries(TRIAL_TYPE_INFO)) {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = `${v.replace(/_/g, " ")} — ${info.blurb}`;
+      sel.appendChild(opt);
+    }
+    selLab.appendChild(sel);
+    selRow.appendChild(selLab);
+    form.appendChild(selRow);
+
+    // Conditional inputs host — filled in based on selected type.
+    const extrasHost = document.createElement("div");
+    form.appendChild(extrasHost);
+
+    function renderExtras(type) {
+      extrasHost.replaceChildren();
+      if (type === "WHOLE_HISTORICAL") {
+        extrasHost.appendChild(makeInputRow("historical_yield_bu_per_ac", "Historical yield (bu/ac) — required", "number", true));
+        extrasHost.appendChild(makeInputRow("historical_years_source", "Years / source (e.g. 2023-2025 combine maps)", "text", false));
+      } else if (type === "WHOLE_NEIGHBOR") {
+        extrasHost.appendChild(makeInputRow("neighbor_field_notes", "Neighbor field notes (same crop, untreated) — required", "text", true));
+      }
+    }
+    sel.addEventListener("change", () => renderExtras(sel.value));
+
+    const submit = document.createElement("button");
+    submit.type = "submit";
+    submit.textContent = "Save trial type";
+    submit.style.marginTop = "6px";
+    form.appendChild(submit);
+
+    const statusLine = document.createElement("span");
+    statusLine.className = "muted";
+    statusLine.style.marginLeft = "10px";
+    form.appendChild(statusLine);
+
+    form.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      submit.disabled = true;
+      statusLine.textContent = "";
+      try {
+        const fd = new FormData(form);
+        const type = fd.get("trial_type");
+        if (!type) throw new Error("Pick a trial type.");
+        const extras = {};
+        if (type === "WHOLE_HISTORICAL") {
+          const raw = fd.get("historical_yield_bu_per_ac");
+          if (raw === "" || raw == null) throw new Error("Historical yield is required for WHOLE_HISTORICAL.");
+          extras.historical_yield_bu_per_ac = Number(raw);
+          const src = fd.get("historical_years_source");
+          if (src) extras.historical_years_source = String(src);
+        } else if (type === "WHOLE_NEIGHBOR") {
+          const notes = fd.get("neighbor_field_notes");
+          if (!notes) throw new Error("Neighbor field notes are required for WHOLE_NEIGHBOR.");
+          extras.neighbor_field_notes = String(notes);
+        }
+        statusLine.textContent = "Saving…";
+        const { error } = await sb.rpc("farmer_set_trial_type", {
+          p_token: token,
+          p_field_id: field.id,
+          p_type: type,
+          p_extras: extras,
+        });
+        if (error) throw error;
+        await refreshState();
+      } catch (e) {
+        console.error("set trial type failed", e);
+        statusLine.textContent = "";
+        alert("Failed: " + (e?.message ?? "unknown"));
+      } finally {
+        submit.disabled = false;
+      }
+    });
+
+    return form;
+  }
+
+  function makeInputRow(name, label, type, required) {
+    const row = document.createElement("div");
+    row.className = "row";
+    const lab = document.createElement("label");
+    lab.textContent = label;
+    const inp = document.createElement("input");
+    inp.name = name;
+    inp.type = type;
+    if (required) inp.required = true;
+    if (type === "number") inp.step = "any";
+    lab.appendChild(inp);
+    row.appendChild(lab);
+    return row;
   }
 
   document.getElementById("addFieldBtn").addEventListener("click", () => {
@@ -278,7 +472,7 @@
     return payload.text || "";
   }
 
-  function renderEventForm(fields) {
+  function renderEventForm(fields, plots) {
     const host = document.getElementById("eventFormHost");
     if (!host) return;
     host.replaceChildren();
@@ -294,6 +488,8 @@
     kindSel.name = "kind";
     for (const [v, t] of [
       ["observation",   "Observation (note)"],
+      ["photo",         "Photo"],
+      ["yield",         "Yield (bu/ac)"],
       ["soil_test",     "Soil test"],
       ["moisture_test", "Moisture test"],
       ["stand_count",   "Stand count"],
@@ -323,6 +519,42 @@
     }
     fieldLab.appendChild(fieldSel);
     selRow.appendChild(fieldLab);
+
+    // Plot picker — only shown when the chosen field has real (non-virtual)
+    // plots. Required for yield events so strip/split deltas stay honest.
+    const plotLab = document.createElement("label");
+    plotLab.textContent = "Plot";
+    plotLab.hidden = true;
+    const plotSel = document.createElement("select");
+    plotSel.name = "plot_id";
+    plotLab.appendChild(plotSel);
+    selRow.appendChild(plotLab);
+
+    function refreshPlotOptions() {
+      const fieldId = fieldSel.value || null;
+      const realPlots = fieldId
+        ? plotsForField(plots, fieldId).filter((p) => !p.is_virtual)
+        : [];
+      plotSel.replaceChildren();
+      if (realPlots.length === 0) {
+        plotLab.hidden = true;
+        return;
+      }
+      plotLab.hidden = false;
+      const blank = document.createElement("option");
+      blank.value = "";
+      blank.textContent = kindSel.value === "yield" ? "— pick plot (required) —" : "— whole field —";
+      plotSel.appendChild(blank);
+      for (const p of realPlots) {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = `${p.label} (${p.role})`;
+        plotSel.appendChild(opt);
+      }
+    }
+    fieldSel.addEventListener("change", refreshPlotOptions);
+    kindSel.addEventListener("change", refreshPlotOptions);
+
     form.appendChild(selRow);
 
     const noteRow = document.createElement("div");
@@ -348,6 +580,27 @@
     fileRow.appendChild(fileLab);
     form.appendChild(fileRow);
 
+    // Public-consent opt-in. Only photos currently surface on the public dashboard
+    // (20260420000001_bio_trial_dashboard_expand.sql gates on kind='photo' AND
+    // public_opt_in=true), but we capture consent on every event so the ledger can
+    // widen later without re-prompting farmers.
+    const publicRow = document.createElement("div");
+    publicRow.className = "row";
+    const publicLab = document.createElement("label");
+    publicLab.style.display = "flex";
+    publicLab.style.alignItems = "center";
+    publicLab.style.gap = "8px";
+    const publicInp = document.createElement("input");
+    publicInp.type = "checkbox";
+    publicInp.name = "public_opt_in";
+    publicInp.style.width = "auto";
+    const publicText = document.createElement("span");
+    publicText.textContent = "OK to feature this on the public trial dashboard (no farm or farmer name shown — only province + crop).";
+    publicLab.appendChild(publicInp);
+    publicLab.appendChild(publicText);
+    publicRow.appendChild(publicLab);
+    form.appendChild(publicRow);
+
     const submit = document.createElement("button");
     submit.type = "submit";
     submit.textContent = "Log event";
@@ -366,8 +619,36 @@
         const fd       = new FormData(form);
         const kind     = fd.get("kind");
         const fieldId  = fd.get("field_id") || null;
+        const plotId   = fd.get("plot_id") || null;
         const note     = String(fd.get("note") ?? "");
+        const publicOk = fd.get("public_opt_in") === "on";
         const file     = fileInp.files?.[0] ?? null;
+
+        if (kind === "photo" && !file) {
+          throw new Error("Attach a photo before logging a Photo event.");
+        }
+
+        // Strip/split deltas depend on knowing which plot each yield came from.
+        // If the field has plots and the farmer didn't pick one, reject.
+        if (kind === "yield" && fieldId) {
+          const real = plotsForField(plots, fieldId).filter((p) => !p.is_virtual);
+          if (real.length > 0 && !plotId) {
+            throw new Error("Pick which plot this yield came from (required for strip/split trials).");
+          }
+        }
+
+        let payload;
+        if (kind === "photo") {
+          payload = { caption: note };
+        } else if (kind === "yield") {
+          const num = Number(note.trim());
+          if (!isFinite(num) || num <= 0) {
+            throw new Error("Enter bushels per acre as a number in Notes / value.");
+          }
+          payload = { bu_per_ac: num };
+        } else {
+          payload = { text: note };
+        }
 
         let fileUrls = [];
         if (file) {
@@ -380,8 +661,10 @@
           p_token: token,
           p_kind: kind,
           p_field_id: fieldId,
-          p_payload: { text: note },
+          p_plot_id: plotId,
+          p_payload: payload,
           p_file_urls: fileUrls,
+          p_public_opt_in: publicOk,
         });
         if (error) throw error;
 
@@ -431,8 +714,8 @@
     const { data, error } = await sb.rpc("farmer_bootstrap", { p_token: token });
     if (error) throw error;
     window.FARMER_STATE = data;
-    renderFields(data.fields || []);
+    renderFields(data.fields || [], data.plots || []);
     renderTimeline(data.events || []);
-    renderEventForm(data.fields || []);
+    renderEventForm(data.fields || [], data.plots || []);
   }
 })();

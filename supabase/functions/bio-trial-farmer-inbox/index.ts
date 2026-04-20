@@ -43,6 +43,22 @@ async function tgSendMessage(
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// Farmers opt a photo into the public dashboard by including #public anywhere
+// in the caption (case-insensitive, word-boundary so `#publicly` won't match).
+// Stateless by design — no preference column; every photo is an explicit choice,
+// and absence of the tag means "private" (safe default).
+const PUBLIC_TAG_RE = /(^|\s)#public(\b|$)/i;
+
+function captionOptsIn(caption: string | null | undefined): boolean {
+  return typeof caption === "string" && PUBLIC_TAG_RE.test(caption);
+}
+
+function stripPublicTag(caption: string | null | undefined): string | null {
+  if (typeof caption !== "string") return null;
+  const cleaned = caption.replace(PUBLIC_TAG_RE, " ").replace(/\s+/g, " ").trim();
+  return cleaned.length > 0 ? cleaned : null;
+}
+
 async function resolveSignup(sb: SupabaseClient, chatId: number): Promise<string | null> {
   const { data, error } = await sb
     .schema("bio_trial")
@@ -180,6 +196,9 @@ async function handlePhoto(
     return;
   }
 
+  const publicOk = captionOptsIn(msg.caption);
+  const caption  = stripPublicTag(msg.caption);
+
   // Record event
   const { error: evtErr } = await sb
     .schema("bio_trial")
@@ -187,10 +206,11 @@ async function handlePhoto(
     .insert({
       signup_id: signupId,
       kind: "photo",
-      payload: { caption: msg.caption ?? null },
+      payload: { caption },
       source: "telegram",
       telegram_message_id: msg.message_id ?? null,
       file_urls: [storagePath],
+      public_opt_in: publicOk,
     });
 
   if (evtErr && !isDuplicateKey(evtErr)) {
@@ -198,7 +218,12 @@ async function handlePhoto(
     return;
   }
 
-  await tgSendMessage(chatId, "Photo saved 📷");
+  await tgSendMessage(
+    chatId,
+    publicOk
+      ? "Photo saved 📷 — tagged for the public dashboard (no farm name shown)."
+      : "Photo saved 📷 (kept private — add #public to the caption to feature it on the public dashboard).",
+  );
 }
 
 async function handleStart(sb: SupabaseClient, chatId: number, args: string): Promise<void> {
@@ -413,6 +438,13 @@ Deno.serve(async (req: Request) => {
         await handleApply(sb, chatId);
       } else if (text.startsWith("/yield")) {
         await handleYield(sb, chatId, text.slice("/yield".length).trim());
+      } else if (text.startsWith("/public")) {
+        await tgSendMessage(
+          chatId,
+          "To feature a photo on the public bio-trial dashboard, add <b>#public</b> anywhere in its caption when you send it.\n\n" +
+          "The public view shows only the image, caption (with #public removed), province, and crop — never your name or farm. " +
+          "Photos without #public stay private and are visible only to you and the trial team.",
+        );
       } else if (text.startsWith("/")) {
         console.log("unhandled command", { chatId, textPreview: text.slice(0, 120) });
       } else if (text.length > 0) {
