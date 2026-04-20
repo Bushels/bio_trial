@@ -74,6 +74,48 @@ This is lighter than classic TDD but keeps the discipline: you describe the beha
 
 ---
 
+## Progress log
+
+Updated per task so this file is always the source of truth for where we are. Search the git log for the task's commit to see the diff.
+
+| Phase | Task | Title                                          | Status | Commit / notes |
+|:-----:|:----:|:-----------------------------------------------|:------:|:---------------|
+| 1     | T1   | `bio_trial.trial_fields` table                 | ✅     | `20260420000001_trial_fields_table` |
+| 1     | T2   | `signups.farmer_telegram_chat_id` + `farmer_linked_at` | ✅ | `20260420000002_signups_telegram_binding` |
+| 1     | T3   | `bio_trial.trial_events` + idempotency index   | ✅     | `20260420000003_trial_events_table` |
+| 1     | T4   | `trial-uploads` private storage bucket         | ✅     | `20260420000004_trial_uploads_bucket` |
+| 2     | T5   | enable `pgjwt` extension                       | ✅     | `20260420000005_enable_pgjwt` |
+| 2     | T6   | `bio_trial.mint_farmer_jwt` + `verify_farmer_jwt` | ✅  | `20260420000006_farmer_jwt_helpers` |
+| 2     | T7   | `public.vendor_mint_farmer_token` (`is_vendor()` gated) | ✅ | `20260420000007_vendor_mint_farmer_token` |
+| 3     | T8   | `public.farmer_bootstrap` (adapted to real schema) | ✅ | `20260420000008_farmer_bootstrap` |
+| 3     | T9   | `public.farmer_upsert_field`                   | ✅     | `20260420000009_farmer_upsert_field` |
+| 3     | T10  | `public.farmer_register_event`                 | ✅     | `20260420000010_farmer_register_event` |
+| 3     | T11  | `bio-trial-farmer-upload-url` edge fn + `farmer_verify_token` wrapper | ✅ | **pivot** from SQL RPC — see T11 section. Migrations `…11_public_farmer_verify_token` + `…12_farmer_verify_token_swallow_errors`. Edge fn deployed `verify_jwt: false` v3. |
+| 4     | T12  | `public.get_trial_dashboard` (privacy floor ≥3)| ⬜     |  |
+| 5     | T13  | scaffold `bio-trial-telegram-webhook`          | ⬜     |  |
+| 5     | T14  | `/start` binding                               | ⬜     |  |
+| 5     | T15  | text observations → `trial_events`             | ⬜     |  |
+| 5     | T16  | photo ingest → storage + `trial_events`        | ⬜     |  |
+| 5     | T17  | `/apply` + `/yield` parsers                    | ⬜     |  |
+| 5     | T18  | `setWebhook` registration                      | ⬜     |  |
+| 6     | T19  | `farmer.html` skeleton                         | ⬜     |  |
+| 6     | T20  | `farmer.js` CRUD + upload (uses edge fn URL)   | ⬜     | depends on T11 pivot |
+| 6     | T21  | `trial.html` public dashboard                  | ⬜     |  |
+| 6     | T22  | landing page link update                       | ⬜     |  |
+| 7     | T23  | vendor: copy farmer link                       | ⬜     |  |
+| 7     | T24  | vendor: rebind Telegram                        | ⬜     |  |
+| 7     | T25  | vendor: events tab                             | ⬜     |  |
+| 8     | T26  | E2E smoke test                                 | ⬜     |  |
+| 8     | T27  | README + design-doc shipped marker             | ⬜     |  |
+
+**Known plan deviations:**
+- **T11 → edge function** (see T11 section for details). `storage.create_signed_upload_url` doesn't exist as a Postgres function; signing has to happen through the storage REST API.
+- **Schema column mismatches in `bio_trial.signups`** (noticed during T8): plan assumed `paid, liters, delivered, shipped, province` — real columns are `payment_status, liters_purchased, product_delivered_at, product_shipped_at, province_state`. `farmer_bootstrap` derives booleans from the real columns; all test-signup INSERTs in later phases use the real column names.
+
+**Test artifact:** `bio_trial.signups` id `3ef9f803-deb3-4117-a093-99d5f4a81da4` ("Test Farmer", AB, wheat, 10 ac) — created during T11 verification and retained for Phase 5/6/7 testing. Will be cleaned up at T26.
+
+---
+
 ## Phase 1 — Schema foundation
 
 ### Task 1: Create `bio_trial.trial_fields` table
