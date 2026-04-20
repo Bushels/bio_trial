@@ -780,9 +780,38 @@ git commit --allow-empty -m "feat(db): add farmer_register_event RPC"
 
 ---
 
-### Task 11: `public.farmer_signed_upload_url`
+### Task 11: `bio-trial-farmer-upload-url` edge function (pivoted from SQL RPC)
 
-Returns a signed PUT URL the farmer's browser can upload to directly. Avoids double-hop (browser → server → storage).
+**Pivot note (2026-04-19):** The original plan below assumed `storage.create_signed_upload_url(bucket, path)` existed as a Postgres function. It does not — Supabase Storage signs upload URLs via a REST endpoint that HMACs against the storage-service secret, not a DB secret. Implemented as an edge function instead, which is the idiomatic pattern.
+
+**What was actually built:**
+
+- **`supabase/functions/bio-trial-farmer-upload-url/index.ts`** — deployed with `verify_jwt: false` (farmers use our custom HS256 JWT, not Supabase Auth).
+  - `POST { token, filename }` → `{ path, token, signedUrl, bucket, signup_id }`.
+  - Verifies token via `public.farmer_verify_token(p_token)` (a thin wrapper over `bio_trial.verify_farmer_jwt` — the `bio_trial` schema isn't on the PostgREST whitelist).
+  - Generates a safe path: `<signup_id>/<iso-stamp>-<rand>-<sanitized-filename>`.
+  - Calls `admin.storage.from('trial-uploads').createSignedUploadUrl(path)` with service_role.
+
+- **Migration `20260420000011_public_farmer_verify_token`** — `public.farmer_verify_token(p_token text) returns uuid` wrapper, `SECURITY DEFINER`.
+- **Migration `20260420000012_farmer_verify_token_swallow_errors`** — hardened to return NULL on any pgjwt decode exception (malformed tokens were surfacing 500s with `invalid byte sequence for encoding "UTF8"`; now they return 401 cleanly).
+
+**Frontend contract change:** farmer.js calls the edge function URL directly (see T20), not `supabase.rpc("farmer_signed_upload_url", ...)`. The call in that task should be:
+
+```js
+const res = await fetch(`${SB_URL}/functions/v1/bio-trial-farmer-upload-url`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", apikey: SB_ANON_KEY },
+  body: JSON.stringify({ token: window.TOKEN, filename: file.name }),
+});
+const { path, signedUrl } = await res.json();
+```
+
+**Verification (performed):** valid token → 200 with signed URL, invalid token → 401, missing fields → 400. Path scoped under `<signup_id>/`.
+
+---
+
+<details>
+<summary>Original plan (superseded)</summary>
 
 **Step 1: Verification query (expect fail)**
 
@@ -838,11 +867,7 @@ SELECT jsonb_pretty(public.farmer_signed_upload_url('<token>', 'soil-test.pdf'))
 
 Expected: jsonb with `path` and `signed.url`.
 
-**Step 4: Commit**
-
-```bash
-git commit --allow-empty -m "feat(db): add farmer_signed_upload_url RPC"
-```
+</details>
 
 ---
 
