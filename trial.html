@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buperac Bio Trial — Live Results</title>
+  <meta name="description" content="Live results from the 2026 Buperac × SixRing foliar biostimulant trial." />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 24px;
+      color: #2e2e30;
+      background: #faf6ec;
+    }
+    h1 { margin-top: 0; }
+    a { color: #4b6a3a; }
+    .headline-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin: 24px 0;
+    }
+    .stat {
+      background: #fff;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid #ebe5d4;
+    }
+    .stat .n {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .stat .l {
+      font-size: 13px;
+      color: rgba(46,46,48,0.65);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+    .section {
+      background: #fff;
+      padding: 18px;
+      border-radius: 10px;
+      border: 1px solid #ebe5d4;
+      margin-bottom: 18px;
+    }
+    .activity-item { padding: 8px 0; border-bottom: 1px solid #f0ebdc; }
+    .activity-item:last-child { border-bottom: none; }
+    .muted { color: rgba(46,46,48,0.6); font-size: 13px; }
+    .empty { font-style: italic; color: rgba(46,46,48,0.5); }
+    .photos {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+    }
+    .photos img {
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    table.agg { width: 100%; border-collapse: collapse; }
+    table.agg th, table.agg td {
+      text-align: left;
+      padding: 6px 4px;
+      border-bottom: 1px solid #f4efe0;
+    }
+    table.agg th { border-bottom: 1px solid #ebe5d4; }
+  </style>
+</head>
+<body>
+  <h1>Buperac Bio Trial — Live Results</h1>
+  <p class="muted">
+    2026 season · Buperac × SixRing foliar biostimulant · <a href="/">trial signup</a>
+  </p>
+
+  <div id="headline" class="headline-grid"></div>
+
+  <section class="section">
+    <h2>Crop yield aggregates</h2>
+    <p class="muted">
+      Shown when at least <strong>3 farms</strong> are contributing for a given crop — protects individual farm privacy.
+    </p>
+    <div id="aggregates"></div>
+  </section>
+
+  <section class="section">
+    <h2>Recent activity</h2>
+    <div id="activity"></div>
+  </section>
+
+  <section class="section" id="photosSection" hidden>
+    <h2>From the field</h2>
+    <div id="photos" class="photos"></div>
+  </section>
+
+  <script src="supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="trial.js" defer></script>
+</body>
+</html>
