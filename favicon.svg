@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Buperac Bio Trial favicon">
+  <!-- Kraft-paper tile with a double green stamp border, echoing the landing-page CTA stamp.
+       A centred slab-serif "B" plus a small sprouting leaf keeps the mark legible at 16px
+       while tying back to the biostimulant brand. -->
+  <defs>
+    <clipPath id="round">
+      <rect x="1" y="1" width="30" height="30" rx="5" ry="5"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background: kraft paper -->
+  <rect x="1" y="1" width="30" height="30" rx="5" ry="5" fill="#d9c29a"/>
+
+  <!-- Faint paper grain (uniform dots) -->
+  <g clip-path="url(#round)" opacity="0.15" fill="#6b4a2b">
+    <circle cx="6"  cy="8"  r="0.6"/>
+    <circle cx="22" cy="6"  r="0.5"/>
+    <circle cx="11" cy="22" r="0.5"/>
+    <circle cx="25" cy="24" r="0.6"/>
+    <circle cx="17" cy="14" r="0.4"/>
+  </g>
+
+  <!-- Double stamp border (trial green) -->
+  <rect x="1.5"  y="1.5"  width="29" height="29" rx="4.5" ry="4.5"
+        fill="none" stroke="#3d7a2f" stroke-width="1.4"/>
+  <rect x="3.25" y="3.25" width="25.5" height="25.5" rx="3" ry="3"
+        fill="none" stroke="#3d7a2f" stroke-width="0.7"/>
+
+  <!-- Sprout: tiny leaf + stem, sits on top of the B like a serif flourish -->
+  <g fill="#3d7a2f">
+    <path d="M16 5.2 C 17.8 6.0, 18.6 7.6, 18.2 9.2 C 16.6 8.8, 15.6 7.6, 16 5.2 Z"/>
+    <path d="M16 5.2 C 14.2 6.0, 13.4 7.6, 13.8 9.2 C 15.4 8.8, 16.4 7.6, 16 5.2 Z"/>
+    <rect x="15.7" y="8.8" width="0.6" height="2.2" rx="0.3"/>
+  </g>
+
+  <!-- Bold slab-serif "B" in ink green -->
+  <text x="16" y="25"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-weight="700"
+        font-size="18"
+        text-anchor="middle"
+        fill="#1e2a4a">B</text>
+</svg>

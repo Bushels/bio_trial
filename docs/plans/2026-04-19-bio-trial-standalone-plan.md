@@ -381,7 +381,7 @@ Dashboard → Project Settings → Edge Functions → Secrets. Add:
 
 | Secret | Value |
 |---|---|
-| `RESEND_API_KEY` | `re_45DQvoSu_FoPcKXpMrYL7MdYHr9pxg3jq` (from Kyle, do not commit) |
+| `RESEND_API_KEY` | `<REDACTED — previously committed key was rotated 2026-04-20 after being flagged in a pre-launch secret scan. Current value lives only in Supabase edge-function secrets + Kyle's password manager.>` |
 | `BIO_TRIAL_FROM` | `Buperac Trial <trial@buperac.com>` (requires Resend domain verification — see Task E1) |
 | `BIO_TRIAL_VENDOR_EMAIL` | **LEAVE UNSET** — Kyle does not want Eric to receive notifications yet. The edge function must gracefully skip the vendor recipient when this var is unset. |
 | `BIO_TRIAL_OWNER_EMAIL` | `buperac@gmail.com` |
