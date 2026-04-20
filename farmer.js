@@ -581,11 +581,13 @@
     form.appendChild(selRow);
 
     // Moisture reading sub-form. kind='moisture_test' uses a structured
-    // payload { reading_type, value, unit, depth_in?, qualitative?,
-    // observed_on, notes } so we can aggregate by reading_type later
-    // and join to yield deltas. Other kinds still use the generic note
-    // textarea below. Legacy rows with payload { pct } or { text } keep
-    // rendering via the timeline/vendor fallbacks.
+    // payload { reading_type, value, unit, qualitative?, observed_on,
+    // notes } so we can aggregate by reading_type later and join to
+    // yield deltas. For reading_type='soil' the value IS the moisture
+    // penetration depth in inches (push-probe reading). Other kinds
+    // still use the generic note textarea below. Legacy rows with
+    // payload { pct } or { text } keep rendering via the timeline/
+    // vendor fallbacks.
     const moistureBlock = document.createElement("div");
     moistureBlock.hidden = true;
 
