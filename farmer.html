@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Your Buperac Trial</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 24px;
+      color: #2e2e30;
+      background: #fbf7ee;
+    }
+    h1 { margin-top: 0; }
+    .card {
+      background: #fff;
+      border: 1px solid #e6e2d8;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .muted { color: rgba(46,46,48,0.65); }
+    .error {
+      color: #a11;
+      background: #fef0f0;
+      border-color: #f3caca;
+      padding: 12px;
+      border-radius: 8px;
+    }
+    button {
+      font: inherit;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid #d4cebe;
+      background: #f7f1e3;
+      cursor: pointer;
+    }
+    button:hover { background: #efe8d3; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    input, select, textarea {
+      font: inherit;
+      padding: 6px 10px;
+      border: 1px solid #d4cebe;
+      border-radius: 6px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    label { display: block; font-size: 13px; color: rgba(46,46,48,0.75); margin-bottom: 4px; }
+    .row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .row > * { flex: 1; }
+    .timeline-item { padding: 10px 0; border-bottom: 1px solid #eee; }
+    .timeline-item:last-child { border-bottom: none; }
+    .kind-badge {
+      display: inline-block;
+      font-size: 11px;
+      text-transform: uppercase;
+      background: #e8e1cf;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-right: 8px;
+      letter-spacing: 0.5px;
+    }
+    .tg-btn {
+      display: inline-block;
+      padding: 10px 14px;
+      background: #229ed9;
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      margin-top: 6px;
+    }
+    .tg-btn:hover { background: #1b8cc1; }
+  </style>
+</head>
+<body>
+  <h1>Your Buperac Trial</h1>
+  <div id="authError" class="card error" hidden></div>
+  <section id="signupSummary" class="card" hidden></section>
+  <section id="telegramSection" class="card" hidden></section>
+  <section id="fieldsSection" class="card" hidden>
+    <h2>Your fields</h2>
+    <div id="fieldsList"></div>
+    <button id="addFieldBtn">+ Add a field</button>
+    <div id="fieldFormHost"></div>
+  </section>
+  <section id="eventSection" class="card" hidden>
+    <h2>Log lab result or observation</h2>
+    <div id="eventFormHost"></div>
+  </section>
+  <section id="timelineSection" class="card" hidden>
+    <h2>Your timeline</h2>
+    <div id="timelineList"></div>
+  </section>
+
+  <script src="supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="farmer.js" defer></script>
+</body>
+</html>
