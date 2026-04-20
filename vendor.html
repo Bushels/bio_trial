@@ -289,6 +289,70 @@
     font-family: "Cutive Mono", monospace;
   }
 
+  .farmer-console-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+  }
+  .farmer-console-cell .fc-btn {
+    font: inherit;
+    font-family: "Special Elite", monospace;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    border: 1px solid rgba(30, 42, 74, 0.35);
+    background: rgba(245, 236, 214, 0.9);
+    color: var(--graphite);
+    cursor: pointer;
+    text-align: center;
+    transition: background 120ms ease;
+  }
+  .farmer-console-cell .fc-btn:hover:not(:disabled) {
+    background: rgba(245, 236, 214, 1);
+  }
+  .farmer-console-cell .fc-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .events-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(520px, 92vw);
+    background: var(--paper);
+    color: var(--graphite);
+    padding: 16px 18px;
+    overflow: auto;
+    z-index: 100;
+    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.25);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .events-panel .events-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(30, 42, 74, 0.2);
+    margin-bottom: 10px;
+  }
+  .events-panel .event-row {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(30, 42, 74, 0.12);
+  }
+  .events-panel .event-row:last-child { border-bottom: none; }
+  .events-panel .event-kind {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 11px;
+    background: rgba(30, 42, 74, 0.12);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
   .muted { color: var(--graphite); opacity: 0.7; }
 
   .spinner {
@@ -367,12 +431,13 @@
               <th style="width: 10%;">Region</th>
               <th style="width: 10%;">Logistics</th>
               <th style="width: 8%;">Req. acres</th>
-              <th style="width: 14%;">Status</th>
-              <th style="width: 26%;">SixRing actions</th>
+              <th style="width: 12%;">Status</th>
+              <th style="width: 22%;">SixRing actions</th>
+              <th style="width: 14%;">Farmer console</th>
             </tr>
           </thead>
           <tbody id="signupsBody">
-            <tr><td colspan="7" class="spinner">loading…</td></tr>
+            <tr><td colspan="8" class="spinner">loading…</td></tr>
           </tbody>
         </table>
       </div>

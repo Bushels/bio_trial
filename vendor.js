@@ -204,7 +204,156 @@
     // Vendor actions
     tr.appendChild(el("td", null, buildVendorCell(r)));
 
+    // Farmer console (T23–T25): copy link / rebind telegram / events
+    tr.appendChild(el("td", null, buildFarmerConsoleCell(r)));
+
     return tr;
+  }
+
+  function buildFarmerConsoleCell(r) {
+    const wrap = el("div", { class: "farmer-console-cell" });
+    const isDelivered = !!r.product_delivered_at;
+    const isBound     = r.farmer_telegram_chat_id != null;
+
+    // T23 — Copy farmer link (gated on delivered)
+    const copyBtn = el("button", {
+      type: "button",
+      class: "fc-btn",
+      disabled: !isDelivered,
+      title: isDelivered ? "" : "Available once delivery is marked",
+    }, "Copy farmer link");
+    if (isDelivered) {
+      copyBtn.addEventListener("click", () => copyFarmerLink(r.id, copyBtn));
+    }
+    wrap.appendChild(copyBtn);
+
+    // T24 — Rebind Telegram (gated on a current binding)
+    const rebindBtn = el("button", {
+      type: "button",
+      class: "fc-btn",
+      disabled: !isBound,
+      title: isBound ? "Clears the telegram chat ID so the farmer can tap /start on a fresh phone" : "Nothing bound yet",
+    }, "Rebind Telegram");
+    if (isBound) {
+      rebindBtn.addEventListener("click", () => rebindFarmerTelegram(r.id, rebindBtn));
+    }
+    wrap.appendChild(rebindBtn);
+
+    // T25 — Events panel
+    const eventsBtn = el("button", { type: "button", class: "fc-btn" }, "Events");
+    eventsBtn.addEventListener("click", () => openEventsPanel(r.id, r.name || r.farm_name || "—"));
+    wrap.appendChild(eventsBtn);
+
+    if (isBound) {
+      const chip = el("div", { class: "muted", style: "font-size:11px;margin-top:4px" }, "🔗 telegram bound");
+      wrap.appendChild(chip);
+    }
+
+    return wrap;
+  }
+
+  async function copyFarmerLink(signupId, btn) {
+    const prev = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "…";
+    try {
+      const { data, error } = await sb.rpc("vendor_mint_farmer_token", { p_signup_id: signupId });
+      if (error) throw error;
+      if (!data) throw new Error("empty token");
+      // Vercel strips `.html` and can drop query strings on redirect — link to /farmer directly.
+      const url = `${location.origin}/farmer?token=${encodeURIComponent(data)}`;
+      await navigator.clipboard.writeText(url);
+      btn.textContent = "copied ✓";
+    } catch (e) {
+      console.error("copyFarmerLink failed", e);
+      btn.textContent = "error";
+    } finally {
+      setTimeout(() => { btn.textContent = prev; btn.disabled = false; }, 1800);
+    }
+  }
+
+  async function rebindFarmerTelegram(signupId, btn) {
+    if (!confirm("Clear the Telegram binding? The farmer will need to tap /start on a fresh link.")) return;
+    const prev = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "…";
+    const { error } = await sb.rpc("vendor_unbind_farmer_telegram", { p_signup_id: signupId });
+    if (error) {
+      alert("Failed: " + (error.message || "unknown"));
+      btn.textContent = prev;
+      btn.disabled = false;
+      return;
+    }
+    btn.textContent = "unbound ✓";
+    setTimeout(loadSignups, 600);
+  }
+
+  async function openEventsPanel(signupId, who) {
+    const existing = document.getElementById("eventsPanel");
+    if (existing) existing.remove();
+
+    const host = el("div", { id: "eventsPanel", class: "events-panel" });
+    const header = el("div", { class: "events-header" },
+      el("strong", null, `Events — ${who}`),
+      el("button", {
+        type: "button",
+        class: "fc-btn",
+        onclick: () => host.remove(),
+      }, "Close"),
+    );
+    host.appendChild(header);
+
+    const list = el("div", { class: "events-list" },
+      el("p", { class: "muted" }, "Loading…"),
+    );
+    host.appendChild(list);
+    document.body.appendChild(host);
+
+    const { data, error } = await sb.rpc("vendor_list_trial_events", { p_signup_id: signupId });
+    list.replaceChildren();
+
+    if (error) {
+      list.appendChild(el("p", { class: "err" }, "Error: " + (error.message || "unknown")));
+      return;
+    }
+    const rows = Array.isArray(data) ? data : [];
+    if (rows.length === 0) {
+      list.appendChild(el("p", { class: "muted" }, "No events yet."));
+      return;
+    }
+    for (const e of rows) {
+      const row = el("div", { class: "event-row" });
+      const head = el("div", null,
+        el("span", { class: "event-kind" }, (e.kind || "event").replace(/_/g, " ")),
+        " ",
+        el("span", { class: "muted", style: "font-size:11px" }, new Date(e.created_at).toLocaleString()),
+      );
+      row.appendChild(head);
+      const body = el("div", { class: "muted", style: "font-size:12px;white-space:pre-wrap;word-break:break-word" },
+        summarizeEventPayload(e),
+      );
+      row.appendChild(body);
+      if (Array.isArray(e.file_urls) && e.file_urls.length > 0) {
+        row.appendChild(el("div", { class: "muted", style: "font-size:11px" },
+          `📎 ${e.file_urls.length} file${e.file_urls.length === 1 ? "" : "s"}`));
+      }
+      list.appendChild(row);
+    }
+  }
+
+  function summarizeEventPayload(e) {
+    const p = e.payload || {};
+    if (e.kind === "observation")    return p.text || "";
+    if (e.kind === "yield")          return p.bu_per_ac != null ? `${p.bu_per_ac} bu/ac` : (p.text || "");
+    if (e.kind === "application")    return p.applied_at ? `Applied ${new Date(p.applied_at).toLocaleString()}` : (p.text || "");
+    if (e.kind === "photo")          return p.caption || "(photo)";
+    if (e.kind === "field_created")  return p.label ? `Field: ${p.label}` : "";
+    if (e.kind === "stand_count")    return p.plants_per_m2 != null ? `${p.plants_per_m2} plants/m²` : (p.text || "");
+    if (e.kind === "protein")        return p.pct != null ? `${p.pct}%` : (p.text || "");
+    if (e.kind === "moisture_test")  return p.pct != null ? `${p.pct}% moisture` : (p.text || "");
+    if (e.kind === "soil_test")      return p.text || "(soil test)";
+    if (e.kind === "heat_event_timing") return p.text || "(heat event)";
+    return p.text || JSON.stringify(p);
   }
 
   function buildStatusCell(r) {
