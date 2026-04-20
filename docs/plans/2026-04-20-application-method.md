@@ -79,7 +79,7 @@ Not-valid → validated in a second statement, so historical rows aren't re-chec
 | T3   | CHECK-constraint migration                       | ✅ | `supabase/migrations/20260420000008_application_method_check.sql` added with `NOT VALID` + `VALIDATE` split. Needs manual `supabase db push` against the Bushel Board project (bio_trial schema) after merge — not auto-applied by the worktree. |
 | T4   | Telegram `/apply` second keyboard                | ✅ | `handleCallback` reuses the 3-part split — `apply:FIELD_ID` now fans out to a second keyboard with `apply_method:FIELD_ID:seed_treatment` / `:foliar_spray`. Unknown-method guard added. Edge function redeploy (`supabase functions deploy bio-trial-farmer-inbox`) required after merge. |
 | T5   | farmer-explainer.md §7.2 copy sync               | ✅ | Wording updated to reflect the two-tap flow. |
-| PR   | Branch + PR                                      | ⏳ | Branch: `feat/application-method`, base: `main`. |
+| PR   | Branch + PR                                      | ✅ | [#3](https://github.com/Bushels/bio_trial/pull/3) — branch `feat/application-method-picker`, base `main`. Name bumped from `feat/application-method` because a prior worktree was still holding the shorter name. |
 
 ### Verification notes
 
