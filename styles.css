@@ -439,31 +439,6 @@ body[data-grain="off"]    .desk::before { display: none; }
   transform: translateY(-4px);
 }
 
-.sim-btn {
-  font-family: "Caveat", cursive;
-  font-size: 18px;
-  color: var(--paper);
-  background: transparent;
-  border: 1px dashed rgba(245, 236, 214, 0.35);
-  padding: 6px 12px;
-  border-radius: 2px;
-  cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-  display: inline-flex; align-items: center; gap: 8px;
-  transform: rotate(-1.5deg);
-}
-.sim-btn:hover { opacity: 1; }
-.sim-btn .sim-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green);
-  animation: blink 2s infinite;
-}
-@keyframes blink {
-  0%, 70%, 100% { opacity: 1; }
-  80%, 90% { opacity: 0.3; }
-}
 
 /* =====================
    MASKING TAPE (shared)

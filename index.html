@@ -56,7 +56,7 @@ body {
 .desk {
   position: relative;
   min-height: 100vh;
-  padding: 56px clamp(20px, 5vw, 80px) 100px;
+  padding: 20px clamp(20px, 5vw, 80px) 100px;
   overflow: hidden;
   color: var(--graphite);
 
@@ -136,8 +136,65 @@ body[data-grain="off"]    .desk::before { display: none; }
   align-items: center;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 40px 12px 60px;
-  min-height: 540px;
+  padding: 8px 12px 40px;
+  min-height: auto;
+}
+
+/* Top-right vendor login — small, unobtrusive, sits on the desk */
+.vendor-login-link {
+  position: absolute;
+  top: 18px;
+  right: clamp(16px, 4vw, 40px);
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-family: "Special Elite", monospace;
+  font-size: 13px;
+  color: var(--paper);
+  text-decoration: none;
+  background: rgba(30, 42, 74, 0.85);
+  border: 1px solid rgba(245, 236, 214, 0.4);
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+  transition: background 150ms ease, transform 150ms ease;
+}
+.vendor-login-link:hover {
+  background: rgba(30, 42, 74, 1);
+  transform: translateY(-1px);
+}
+.vendor-login-link::before {
+  content: "→";
+  opacity: 0.7;
+}
+
+.trial-results-link {
+  position: absolute;
+  top: 18px;
+  left: clamp(16px, 4vw, 40px);
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-family: "Special Elite", monospace;
+  font-size: 13px;
+  color: var(--paper);
+  text-decoration: none;
+  background: rgba(75, 106, 58, 0.9);
+  border: 1px solid rgba(245, 236, 214, 0.4);
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+  transition: background 150ms ease, transform 150ms ease;
+}
+.trial-results-link:hover {
+  background: rgba(75, 106, 58, 1);
+  transform: translateY(-1px);
+}
+.trial-results-link::after {
+  content: "→";
+  opacity: 0.7;
 }
 
 .coffee-ring {
@@ -224,10 +281,126 @@ body[data-grain="off"]    .desk::before { display: none; }
   font-size: clamp(15px, 1.3vw, 18px);
   color: #2d2a22;
   background: rgba(245, 236, 214, 0.0);
-  margin: 0 0 36px;
+  margin: 0 0 24px;
   max-width: 46ch;
   line-height: 1.55;
   letter-spacing: 0.2px;
+}
+
+/* manila hang tag — trial price */
+.price-tag {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px 24px 14px 40px;
+  margin: 0 0 32px;
+  background: linear-gradient(180deg, #e9d39a 0%, #d8bd7a 100%);
+  color: var(--ink);
+  border-radius: 4px 14px 14px 4px;
+  box-shadow:
+    0 10px 18px -10px rgba(40,20,10,0.5),
+    0 3px 6px -3px rgba(40,20,10,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.35);
+  transform: rotate(-2deg);
+  font-family: "Kalam", "Caveat", cursive;
+}
+.price-tag::before {
+  /* paper grain on tag */
+  content: "";
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 0.1  0 0 0 0 0.08  0 0 0 0 0.05  0 0 0 0.22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  mix-blend-mode: multiply;
+  opacity: 0.45;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.price-tag-hole {
+  position: absolute;
+  left: 12px; top: 50%;
+  width: 16px; height: 16px;
+  margin-top: -8px;
+  background: #2a1a0e;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 2px 2px rgba(0,0,0,0.6),
+    0 0 0 2px rgba(120,85,45,0.6);
+}
+.price-tag-lead {
+  font-size: 14px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-family: "Permanent Marker", "Kalam", cursive;
+}
+.price-tag-amount {
+  font-family: "Permanent Marker", "Kalam", cursive;
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1;
+  color: var(--ink);
+  letter-spacing: 0.5px;
+}
+.price-tag-unit {
+  font-size: 0.55em;
+  color: var(--graphite);
+  margin-left: 2px;
+}
+.price-tag-note {
+  font-size: 13px;
+  color: var(--graphite-soft);
+  font-style: italic;
+}
+
+/* ship-address block & subtotal */
+.logistics-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 0 0 8px;
+}
+.logistics-opt {
+  flex: 1 1 220px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.35);
+  border: 1.5px dashed rgba(60,45,20,0.35);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: "Kalam", cursive;
+  font-size: 15px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.logistics-opt:hover { background: rgba(255,255,255,0.55); }
+.logistics-opt input { accent-color: var(--ink); }
+.logistics-opt:has(input:checked) {
+  background: rgba(246,226,122,0.5);
+  border-color: rgba(60,45,20,0.7);
+  border-style: solid;
+}
+.ship-block {
+  display: grid;
+  gap: 12px;
+  margin: 10px 0 18px;
+}
+.acres-subtotal {
+  margin-top: 6px;
+  font-family: "Kalam", cursive;
+  font-size: 16px;
+  color: var(--graphite);
+}
+.acres-subtotal .acres-subtotal-note {
+  display: block;
+  font-size: 14px;
+  color: rgba(46, 46, 48, 0.7);
+  margin-top: 2px;
+}
+.acres-subtotal strong {
+  color: var(--ink);
+  font-family: "Permanent Marker", cursive;
+  letter-spacing: 0.3px;
 }
 
 /* stamp CTA */
@@ -447,32 +620,6 @@ body[data-grain="off"]    .desk::before { display: none; }
   border-radius: 2px;
   box-shadow: inset 0 1px 0 rgba(255,240,200,0.6), inset 0 -1px 2px rgba(0,0,0,0.4);
   transform: translateY(-4px);
-}
-
-.sim-btn {
-  font-family: "Caveat", cursive;
-  font-size: 18px;
-  color: var(--paper);
-  background: transparent;
-  border: 1px dashed rgba(245, 236, 214, 0.35);
-  padding: 6px 12px;
-  border-radius: 2px;
-  cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-  display: inline-flex; align-items: center; gap: 8px;
-  transform: rotate(-1.5deg);
-}
-.sim-btn:hover { opacity: 1; }
-.sim-btn .sim-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green);
-  animation: blink 2s infinite;
-}
-@keyframes blink {
-  0%, 70%, 100% { opacity: 1; }
-  80%, 90% { opacity: 0.3; }
 }
 
 /* =====================
@@ -772,6 +919,83 @@ body[data-grain="off"]    .desk::before { display: none; }
   margin-top: 10px;
   text-align: right;
   padding-right: 12px;
+}
+
+/* "Clipped" PDF reference — a paperclipped note pinned below the field-notebook page. */
+.brochure-clip-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 22px 0 6px;
+}
+.brochure-clip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px 12px 40px;
+  background: #f4ead0;
+  border: 1px solid rgba(30, 42, 74, 0.25);
+  border-radius: 3px;
+  box-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  text-decoration: none;
+  color: var(--ink);
+  font-family: "Special Elite", monospace;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  transform: rotate(-0.8deg);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+  max-width: 460px;
+}
+.brochure-clip:hover,
+.brochure-clip:focus-visible {
+  transform: rotate(-0.3deg) translateY(-1px);
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  outline: none;
+}
+.brochure-clip::before {
+  /* Paperclip — pure CSS nested rounded rectangles */
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 18px;
+  height: 28px;
+  transform: translateY(-50%) rotate(-18deg);
+  border: 2px solid #6b5d3a;
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  box-shadow: inset -4px 0 0 -2px #6b5d3a;
+}
+.brochure-clip .clip-title {
+  font-family: "Caveat", cursive;
+  font-size: 20px;
+  line-height: 1.05;
+  color: #1e2a4a;
+}
+.brochure-clip .clip-sub {
+  color: rgba(46, 46, 48, 0.7);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  white-space: nowrap;
+}
+.brochure-clip .clip-arrow {
+  margin-left: auto;
+  font-family: "Caveat", cursive;
+  font-size: 22px;
+  color: #b03a2e;
+}
+@media (max-width: 540px) {
+  .brochure-clip {
+    flex-wrap: wrap;
+    padding: 12px 16px 12px 38px;
+    font-size: 12px;
+  }
+  .brochure-clip .clip-arrow { margin-left: 0; }
 }
 
 /* =====================
@@ -1275,6 +1499,9 @@ form { position: relative; z-index: 2; }
   <main id="desk" class="desk">
     <!-- Desk lighting + grain rendered in CSS; individual elements are layered on top -->
 
+    <a class="trial-results-link" href="/trial">Live trial results</a>
+    <a class="vendor-login-link" href="/vendor">SixRing login</a>
+
     <!-- 1. HERO -->
     <section class="hero" aria-labelledby="hero-title">
       <div class="coffee-ring" aria-hidden="true"></div>
@@ -1282,13 +1509,19 @@ form { position: relative; z-index: 2; }
 
       <div class="hero-copy">
         <h1 id="hero-title" class="marker-head">
-          <span class="line l1">Try our biostimulant</span>
-          <span class="line l2">on one of your fields.</span>
+          <span class="line l1">Try SixRing's biostimulant.</span>
+          <span class="line l2">On your fields.</span>
         </h1>
         <p class="typewriter-sub">
-          A lignin-derived foliar biostimulant. Trial pricing for the 2026 season.<br>
+          A lignin-derived foliar biostimulant. Run it on your own field for the 2026 season.<br>
           Cut synthetic nitrogen without cutting yield. Tell us how it went.
         </p>
+        <div class="price-tag" aria-label="Trial price">
+          <span class="price-tag-hole"></span>
+          <span class="price-tag-lead">2026 Trial Price</span>
+          <span class="price-tag-amount">$2.80<span class="price-tag-unit">/ac</span></span>
+          <span class="price-tag-note">no cap — order as much as you need</span>
+        </div>
         <a href="#signup" class="stamp-cta" aria-label="Claim my trial spot">
           <span class="stamp-inner">
             <span class="stamp-line1">Claim My</span>
@@ -1318,9 +1551,6 @@ form { position: relative; z-index: 2; }
           </div>
           <div class="odo-caption">ACRES · EST. 2026</div>
         </div>
-        <button class="sim-btn" id="simBtn" title="Simulate a new enrollment">
-          <span class="sim-dot"></span> simulate new signup
-        </button>
       </div>
     </section>
 
@@ -1735,6 +1965,20 @@ form { position: relative; z-index: 2; }
             </g>
           </svg>
           <div class="sketch-caption">— field notebook, pg. 14 · Mar '26 —</div>
+
+          <div class="brochure-clip-wrap">
+            <a class="brochure-clip"
+               href="uploads/sixring-agronomy-brief.pdf"
+               target="_blank"
+               rel="noopener"
+               aria-label="SixRing agronomy brief — full PDF, opens in a new tab">
+              <span>
+                <span class="clip-title">Read the full SixRing agronomy brief</span><br>
+                <span class="clip-sub">PDF · nitrogen-uptake mechanism · opens in new tab</span>
+              </span>
+              <span class="clip-arrow" aria-hidden="true">→</span>
+            </a>
+          </div>
         </div>
       </div>
     </section>
@@ -1879,11 +2123,48 @@ form { position: relative; z-index: 2; }
 
             <div class="row one">
               <label class="field acres-field">
-                <span class="lbl">Approx. acres you'd test on</span>
-                <input type="number" name="acres" min="1" step="1" placeholder="e.g. 40">
+                <span class="lbl">Approx. acres you'd trial on</span>
+                <input type="number" name="acres" min="1" step="1" placeholder="e.g. 40" id="acresInput">
                 <span class="pencil-underline"></span>
               </label>
             </div>
+            <p class="acres-subtotal" id="acresSubtotal">
+              At $2.80/ac, your trial cost works out to <strong id="acresSubtotalAmt">—</strong>
+              <span class="acres-subtotal-note">(plus delivery if shipped — we'll quote in follow-up).</span>
+            </p>
+
+            <fieldset class="logistics" style="margin-top:22px">
+              <legend class="lbl">How would you like to receive your product?</legend>
+              <div class="logistics-choice">
+                <label class="logistics-opt">
+                  <input type="radio" name="logistics" value="pickup_fob_calgary" required>
+                  <span>Pickup FOB Calgary</span>
+                </label>
+                <label class="logistics-opt">
+                  <input type="radio" name="logistics" value="ship" required>
+                  <span>Ship to me</span>
+                </label>
+              </div>
+              <div class="ship-block" id="shipBlock" hidden>
+                <label class="field">
+                  <span class="lbl">Delivery street address</span>
+                  <input type="text" name="delivery_street" autocomplete="street-address">
+                  <span class="pencil-underline"></span>
+                </label>
+                <div class="row two">
+                  <label class="field">
+                    <span class="lbl">City / Town</span>
+                    <input type="text" name="delivery_city" autocomplete="address-level2">
+                    <span class="pencil-underline"></span>
+                  </label>
+                  <label class="field">
+                    <span class="lbl">Postal code</span>
+                    <input type="text" name="delivery_postal" autocomplete="postal-code">
+                    <span class="pencil-underline"></span>
+                  </label>
+                </div>
+              </div>
+            </fieldset>
 
             <div class="submit-row">
               <button type="submit" class="rubber-stamp" id="submitBtn">

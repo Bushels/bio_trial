@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Trial Ledger — 2026 Field Notes</title>
+  <meta name="description" content="Live results from the 2026 Buperac × SixRing foliar biostimulant trial. Farms, acres, observations, yields — aggregated, never named." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Permanent+Marker&family=Special+Elite&family=Cutive+Mono&family=Inter:wght@400;500;600&family=Kalam:wght@400;700&family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&display=swap">
+  <style>
+/* =========================================================
+   Bio Trial — "The Trial Ledger" (live results)
+   Desk scene matched to index.html: brass plaque headline,
+   green-ruled notebook aggregates, pinboard activity cards,
+   polaroid photos. Real data rendered by trial.js; this CSS
+   + inline decorator script adds the "theatre".
+   ========================================================= */
+
+:root {
+  --kraft:        #d9c29a;
+  --kraft-deep:   #b89a68;
+  --soil:         #6b4a2b;
+  --soil-deep:    #4a3218;
+  --ink:          #1e2a4a;
+  --ink-soft:     #2b3a63;
+  --graphite:     #3a3a38;
+  --graphite-soft:#55554f;
+  --green:        #3d7a2f;
+  --green-ruled:  #6a9b5c;
+  --red-stamp:    #9f2c1e;
+  --yellow:       #f4e14a;
+  --paper:        #f5ecd6;
+  --paper-warm:   #efe0bd;
+  --note-yellow:  #f6e27a;
+  --tape:         rgba(240, 224, 170, 0.78);
+  --brass:        #c9a35a;
+  --shadow:       0 12px 24px -10px rgba(40, 20, 10, 0.45),
+                  0 4px 8px -3px rgba(40, 20, 10, 0.35);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  color: var(--graphite);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  background: #2a1a0e;
+}
+.sr-only { position: absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
+
+/* =====================
+   DESK BACKGROUND (matches index.html)
+===================== */
+.desk {
+  position: relative;
+  min-height: 100vh;
+  padding: 56px clamp(20px, 5vw, 80px) 120px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(255, 220, 160, 0.18), transparent 55%),
+    radial-gradient(ellipse at 80% 90%, rgba(0,0,0,0.25), transparent 60%),
+    repeating-linear-gradient(
+      90deg,
+      #6b3f1d 0 180px,
+      #5e371a 180px 182px,
+      #6b3f1d 182px 360px,
+      #5a3317 360px 362px
+    ),
+    linear-gradient(180deg, #7a4a25, #5a3418);
+  background-blend-mode: multiply, multiply, normal, normal;
+}
+.desk::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.012 0.6' numOctaves='2' seed='6'/><feColorMatrix values='0 0 0 0 0.25   0 0 0 0 0.12   0 0 0 0 0.04   0 0 0 0.35 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/></svg>");
+  mix-blend-mode: multiply; opacity: 0.7;
+}
+.desk::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 30%, transparent 45%, rgba(0,0,0,0.45) 100%);
+}
+
+.coffee-ring {
+  position: absolute;
+  right: 5%; top: 90px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, transparent 62%, rgba(90, 50, 20, 0.28) 63%, rgba(90, 50, 20, 0.45) 66%, rgba(90, 50, 20, 0.22) 70%, transparent 74%);
+  transform: rotate(14deg) scale(1.05);
+  filter: blur(0.6px);
+  opacity: 0.8;
+  z-index: 1;
+}
+
+/* =====================
+   MASTHEAD
+===================== */
+.ledger-wrap {
+  position: relative;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.masthead {
+  position: relative;
+  text-align: center;
+  padding: 22px 40px 28px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.05), transparent 30%),
+    #f1e4c2;
+  background-blend-mode: overlay, normal;
+  border: 1px solid rgba(58,40,18,0.3);
+  box-shadow: var(--shadow);
+  transform: rotate(-0.3deg);
+  color: #231a0c;
+  margin-bottom: 38px;
+}
+.masthead::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='2'/><feColorMatrix values='0 0 0 0 0.2   0 0 0 0 0.12   0 0 0 0 0.04   0 0 0 0.12 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>");
+  mix-blend-mode: multiply; opacity: 0.55;
+}
+.masthead::after {
+  content: "";
+  position: absolute; left: 24px; right: 24px;
+  top: 12px; height: 0;
+  border-top: 2px solid #231a0c;
+  box-shadow: 0 4px 0 #231a0c;
+}
+.masthead-foot {
+  position: absolute; left: 24px; right: 24px; bottom: 12px; height: 0;
+  border-top: 2px solid #231a0c;
+  box-shadow: 0 4px 0 #231a0c;
+}
+
+.masthead-kicker {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: "IM Fell English SC", serif;
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  color: #231a0c;
+  margin-bottom: 4px;
+  position: relative; z-index: 2;
+}
+.masthead-kicker em {
+  font-family: "IM Fell English", serif;
+  font-style: italic;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+.masthead-title {
+  position: relative; z-index: 2;
+  font-family: "IM Fell English SC", serif;
+  font-size: clamp(44px, 7.5vw, 110px);
+  line-height: 0.92;
+  color: #1a120a;
+  margin: 10px 0 8px;
+  letter-spacing: 0.01em;
+  text-shadow:
+    0.5px 0 0 rgba(26,18,10,0.6),
+    -0.5px 0 0 rgba(180, 160, 120, 0.4),
+    0 0.5px 0 rgba(0,0,0,0.15);
+  filter: url(#roughen-text);
+}
+.masthead-subtitle {
+  position: relative; z-index: 2;
+  font-family: "IM Fell English", serif;
+  font-style: italic;
+  font-size: 20px;
+  color: #3a2a14;
+  margin-bottom: 6px;
+}
+.masthead-dateline {
+  position: relative; z-index: 2;
+  font-family: "Cutive Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #4a3218;
+  margin-top: 14px;
+}
+.masthead-dateline span + span { margin-left: 18px; }
+
+.ink-blot {
+  position: absolute;
+  right: 30px; top: 14px;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 30%, #0f1530 0%, #0f1530 45%, rgba(15,21,48,0.3) 70%, transparent 85%);
+  opacity: 0.75;
+  transform: rotate(12deg);
+  z-index: 2;
+  filter: blur(0.4px);
+}
+
+.tape-h {
+  position: absolute;
+  width: 90px; height: 28px;
+  background: var(--tape);
+  box-shadow: 0 1px 1px rgba(0,0,0,0.15);
+  mix-blend-mode: multiply;
+  z-index: 4;
+  clip-path: polygon(2% 20%, 14% 5%, 28% 18%, 48% 4%, 68% 16%, 88% 6%, 98% 18%, 96% 82%, 84% 94%, 66% 82%, 48% 94%, 30% 82%, 14% 94%, 2% 86%);
+}
+.tape-tl { top: -14px; left: 40px; transform: rotate(-12deg); }
+.tape-tr { top: -14px; right: 40px; transform: rotate(10deg); }
+
+/* =====================
+   BRASS PLAQUE HEADLINE STATS
+===================== */
+.plaque-board {
+  position: relative;
+  padding: 28px 26px 22px;
+  margin: 0 auto 42px;
+  max-width: 1140px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #3e2512 0 260px,
+      #331d0d 260px 262px,
+      #3e2512 262px 520px,
+      #2e1a0a 520px 522px
+    ),
+    linear-gradient(180deg, #462912, #2a1808);
+  border: 3px solid #1a0d04;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,200,150,0.08),
+    0 20px 40px -20px rgba(0,0,0,0.7),
+    0 8px 16px -6px rgba(0,0,0,0.5);
+}
+.plaque-board::before {
+  content: ""; position: absolute; inset: 0;
+  pointer-events: none; border-radius: 4px;
+  background: radial-gradient(ellipse at 50% 20%, rgba(255,220,170,0.08), transparent 60%);
+}
+.plaque-board-label {
+  position: absolute;
+  top: -16px; left: 36px;
+  padding: 6px 18px;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      var(--tape) 0 6px,
+      rgba(232,216,170,0.86) 6px 12px
+    );
+  transform: rotate(-1.5deg);
+  font-family: "Permanent Marker", cursive;
+  font-size: 15px;
+  color: var(--ink);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  z-index: 4;
+}
+
+/* 8 tiles in a 4×2 grid — gives each plaque more breathing room than the
+   original 6-tile layout and comfortably fits "Applications logged". */
+#headline.headline-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  position: relative;
+  z-index: 2;
+}
+@media (max-width: 980px) { #headline.headline-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 460px) { #headline.headline-grid { grid-template-columns: 1fr; } }
+
+.stat {
+  position: relative;
+  padding: 18px 12px 16px;
+  min-height: 118px;
+  text-align: center;
+  border-radius: 3px;
+  background:
+    linear-gradient(180deg, rgba(255,240,200,0.25), transparent 40%, rgba(0,0,0,0.12) 100%),
+    repeating-linear-gradient(
+      90deg,
+      #c9a35a 0 1px,
+      #d5b26c 1px 2px,
+      #bf9750 2px 3px
+    ),
+    linear-gradient(180deg, #d8b36e, #a07d3f);
+  background-blend-mode: normal, overlay, normal;
+  border: 1.5px solid #5a3f1a;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,240,200,0.25),
+    inset 0 -2px 4px rgba(60,35,8,0.4),
+    0 3px 0 #3d2510,
+    0 6px 10px -4px rgba(0,0,0,0.5);
+  transform: rotate(var(--tilt, 0deg));
+}
+.stat:nth-child(1) { --tilt: -0.6deg; }
+.stat:nth-child(2) { --tilt:  0.4deg; }
+.stat:nth-child(3) { --tilt: -0.3deg; }
+.stat:nth-child(4) { --tilt:  0.7deg; }
+.stat:nth-child(5) { --tilt: -0.5deg; }
+.stat:nth-child(6) { --tilt:  0.3deg; }
+.stat:nth-child(7) { --tilt: -0.4deg; }
+.stat:nth-child(8) { --tilt:  0.5deg; }
+
+.stat::before, .stat::after {
+  content: "";
+  position: absolute;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #6a5030 0%, #3a2612 60%, #1d1006 100%);
+  box-shadow: inset 0 -1px 1px rgba(0,0,0,0.5), 0 1px 1px rgba(255,230,180,0.25);
+}
+.stat::before { top: 6px; left: 6px; }
+.stat::after  { top: 6px; right: 6px; }
+.stat .screw-bl, .stat .screw-br {
+  position: absolute; width: 9px; height: 9px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #6a5030 0%, #3a2612 60%, #1d1006 100%);
+  box-shadow: inset 0 -1px 1px rgba(0,0,0,0.5), 0 1px 1px rgba(255,230,180,0.25);
+}
+.stat .screw-bl { bottom: 6px; left: 6px; }
+.stat .screw-br { bottom: 6px; right: 6px; }
+
+.stat .n {
+  font-family: "IM Fell English SC", serif;
+  font-size: clamp(34px, 4vw, 52px);
+  font-weight: 400;
+  line-height: 1;
+  color: #2a1a06;
+  text-shadow:
+    0 1px 0 rgba(255,240,200,0.4),
+    0 -1px 0 rgba(60,35,8,0.45);
+  margin: 6px 0 8px;
+  letter-spacing: 0.01em;
+}
+.stat .l {
+  display: block;
+  font-family: "Special Elite", "Cutive Mono", monospace;
+  font-size: 10.5px;
+  line-height: 1.25;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #3a2210;
+  text-shadow: 0 1px 0 rgba(255,240,200,0.35);
+  padding: 0 4px;
+}
+
+/* =====================
+   CROPS IN TRIAL — masking-tape chip strip
+===================== */
+.crops-strip {
+  position: relative;
+  max-width: 1020px;
+  margin: 0 auto 38px;
+  padding: 18px 24px 20px;
+  background:
+    repeating-linear-gradient(135deg,
+      var(--tape) 0 8px,
+      rgba(232,216,170,0.9) 8px 16px);
+  transform: rotate(-0.4deg);
+  box-shadow: 0 6px 14px -8px rgba(0,0,0,0.5);
+  text-align: center;
+}
+.crops-strip-label {
+  display: block;
+  font-family: "Permanent Marker", cursive;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+#crops-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.crop-chip {
+  display: inline-block;
+  padding: 4px 12px 5px;
+  background: #fbf4dc;
+  border: 1.5px solid var(--ink);
+  font-family: "Caveat", cursive;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink);
+  text-transform: capitalize;
+  transform: rotate(var(--r, 0deg));
+  box-shadow: 0 2px 3px rgba(0,0,0,0.18);
+}
+.crop-chip:nth-child(3n)   { --r: -1.5deg; }
+.crop-chip:nth-child(3n+1) { --r:  1deg; }
+.crop-chip:nth-child(3n+2) { --r: -0.5deg; }
+.crops-empty {
+  font-family: "Caveat", cursive;
+  font-size: 18px;
+  color: var(--graphite-soft);
+}
+
+/* =====================
+   SHARED SECTION (torn paper on desk)
+===================== */
+.section {
+  position: relative;
+  margin: 0 auto 48px;
+  max-width: 1020px;
+  background: var(--paper);
+  padding: 42px 44px 38px;
+  color: var(--graphite);
+  box-shadow: var(--shadow);
+  border-radius: 2px;
+}
+.section::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.2   0 0 0 0 0.12   0 0 0 0 0.04   0 0 0 0.1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>");
+  mix-blend-mode: multiply; opacity: 0.55;
+}
+.section.tilt-l { transform: rotate(-0.5deg); }
+.section.tilt-r { transform: rotate(0.4deg); }
+
+.section-title {
+  position: relative; z-index: 2;
+  font-family: "Permanent Marker", cursive;
+  font-size: clamp(28px, 3.6vw, 42px);
+  color: var(--ink);
+  margin: 0 0 4px;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+.section-sub {
+  position: relative; z-index: 2;
+  font-family: "Caveat", cursive;
+  font-size: 18px;
+  color: var(--graphite);
+  margin: 0 0 22px;
+}
+.section-sub strong {
+  color: var(--ink);
+  font-weight: 700;
+  background:
+    linear-gradient(transparent 60%, rgba(244,225,74,0.6) 60% 96%, transparent 96%);
+  padding: 0 3px;
+}
+
+/* =====================
+   AGGREGATES — field notebook, ruled green
+===================== */
+#aggregates.notebook {
+  position: relative;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 30px,
+      var(--green-ruled) 30px 31px,
+      transparent 31px 32px
+    ),
+    #f7efd6;
+  background-size: 100% auto, auto;
+  padding: 28px 30px 30px 84px;
+  min-height: 260px;
+  border: 1px solid rgba(58,40,18,0.15);
+  box-shadow: inset 0 0 40px rgba(58,40,18,0.08);
+}
+#aggregates.notebook::before {
+  content: ""; position: absolute;
+  top: 0; bottom: 0; left: 56px; width: 1.5px;
+  background: rgba(180,50,40,0.55);
+}
+#aggregates.notebook::after {
+  content: ""; position: absolute;
+  top: 16px; bottom: 16px; left: 20px; width: 14px;
+  background:
+    radial-gradient(circle at 50% 20px, #2a1a0e 0 6px, transparent 7px),
+    radial-gradient(circle at 50% calc(50%), #2a1a0e 0 6px, transparent 7px),
+    radial-gradient(circle at 50% calc(100% - 20px), #2a1a0e 0 6px, transparent 7px);
+  opacity: 0.75;
+}
+
+table.agg {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Caveat", cursive;
+  font-size: 22px;
+  color: var(--ink);
+  position: relative;
+  z-index: 2;
+}
+table.agg thead th {
+  font-family: "Permanent Marker", cursive;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-align: left;
+  color: var(--graphite);
+  padding: 4px 10px 8px;
+  border-bottom: 2px solid var(--ink);
+}
+table.agg tbody td {
+  padding: 6px 10px;
+  border-bottom: 1px dashed rgba(30,42,74,0.2);
+}
+table.agg tbody tr td:first-child {
+  text-transform: capitalize;
+  font-weight: 600;
+}
+table.agg tbody td:nth-child(2) {
+  font-family: "IM Fell English SC", serif;
+  font-size: 24px;
+}
+
+.seal-overlay {
+  position: absolute;
+  inset: 12px;
+  pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 5;
+}
+.seal-strip {
+  position: relative;
+  width: 85%;
+  padding: 22px 32px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.12), transparent 40%),
+    #e6d29a;
+  color: var(--ink);
+  text-align: center;
+  transform: rotate(-3deg);
+  box-shadow: 0 10px 20px -8px rgba(0,0,0,0.35);
+  border-top: 1px dashed rgba(58,40,18,0.3);
+  border-bottom: 1px dashed rgba(58,40,18,0.3);
+}
+.seal-strip::before, .seal-strip::after {
+  content: ""; position: absolute;
+  top: -6px; bottom: -6px; width: 14px;
+  background: inherit;
+  clip-path: polygon(0 0, 100% 8%, 20% 22%, 100% 34%, 30% 50%, 100% 66%, 20% 78%, 100% 92%, 0 100%);
+}
+.seal-strip::before { left: -10px; }
+.seal-strip::after  { right: -10px; transform: scaleX(-1); }
+
+.seal-title {
+  font-family: "Permanent Marker", cursive;
+  font-size: 22px;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+.seal-meta {
+  font-family: "Special Elite", monospace;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--graphite);
+}
+.seal-progress {
+  display: inline-block;
+  margin-left: 12px;
+  font-family: "Permanent Marker", cursive;
+  font-size: 18px;
+  color: var(--red-stamp);
+}
+
+.rubber-stamp {
+  position: absolute;
+  right: 36px; top: 24px;
+  padding: 10px 20px;
+  border: 3px solid var(--red-stamp);
+  color: var(--red-stamp);
+  font-family: "Special Elite", monospace;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transform: rotate(-14deg);
+  opacity: 0.82;
+  text-align: center;
+  line-height: 1.2;
+  box-shadow: inset 0 0 0 1px rgba(159,44,30,0.2);
+  mix-blend-mode: multiply;
+  z-index: 6;
+}
+.rubber-stamp::after {
+  content: ""; position: absolute; inset: -2px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='s'><feTurbulence baseFrequency='0.8' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.6   0 0 0 0 0.17   0 0 0 0 0.12   0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23s)' opacity='0.35'/></svg>");
+  mix-blend-mode: multiply; pointer-events: none;
+  opacity: 0.3;
+}
+.rubber-stamp-sub {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+.privacy-meter {
+  margin-top: 14px;
+  display: flex; align-items: center; gap: 8px;
+  justify-content: center;
+}
+.privacy-dot {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid var(--ink);
+  background: transparent;
+  display: inline-block;
+}
+.privacy-dot.filled {
+  background:
+    radial-gradient(circle at 35% 30%, #6a8f5a 0%, #3d7a2f 50%, #234c1a 100%);
+  border-color: #234c1a;
+}
+
+/* =====================
+   ACTIVITY — pinned index cards
+===================== */
+.activity-board { position: relative; }
+#activity {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+  z-index: 2;
+}
+.activity-item {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.5), transparent 30%),
+    #fbf4dc;
+  padding: 16px 22px 18px 60px;
+  min-height: 72px;
+  border: 1px solid rgba(58,40,18,0.2);
+  box-shadow:
+    0 8px 14px -8px rgba(40,20,10,0.35),
+    0 2px 3px -1px rgba(40,20,10,0.2);
+  transform: rotate(var(--r, 0deg));
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,0.5), transparent 30%),
+    linear-gradient(#fbf4dc, #fbf4dc);
+}
+.activity-item::before {
+  content: ""; position: absolute;
+  left: 46px; top: 0; bottom: 0; width: 1.4px;
+  background: rgba(180,50,40,0.45);
+}
+.activity-item::after {
+  content: ""; position: absolute;
+  left: 60px; right: 22px; top: 34px; bottom: 16px;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 21px,
+    rgba(30,42,74,0.12) 21px 22px
+  );
+  pointer-events: none;
+}
+
+.activity-item:nth-child(1) { --r: -0.6deg; }
+.activity-item:nth-child(2) { --r:  0.4deg; }
+.activity-item:nth-child(3) { --r: -0.3deg; opacity: 0.96; }
+.activity-item:nth-child(4) { --r:  0.2deg; opacity: 0.92; }
+.activity-item:nth-child(5) { --r: -0.15deg; opacity: 0.88; }
+.activity-item:nth-child(n+6) { --r: 0deg; opacity: 0.82; }
+
+.activity-item .pin {
+  position: absolute;
+  top: -9px; left: 22px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff7e6a 0%, #c8342a 55%, #7a1a13 100%);
+  box-shadow: 0 2px 3px rgba(0,0,0,0.4), inset 0 -1px 1px rgba(0,0,0,0.3);
+  z-index: 3;
+}
+.activity-item:nth-child(2) .pin { background: radial-gradient(circle at 35% 30%, #7bb7d8 0%, #2f6891 55%, #173a52 100%);}
+.activity-item:nth-child(3) .pin { background: radial-gradient(circle at 35% 30%, #f0d679 0%, #b38524 55%, #6b4e12 100%);}
+.activity-item:nth-child(4) .pin { background: radial-gradient(circle at 35% 30%, #a6d9a0 0%, #4d8a42 55%, #2a5122 100%);}
+
+.activity-item .kind {
+  display: inline-block;
+  padding: 4px 10px 3px;
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  font-family: "Special Elite", monospace;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+  box-shadow: inset 0 0 0 1px rgba(30,42,74,0.15);
+  margin-right: 10px;
+  vertical-align: middle;
+  background: rgba(250,242,210,0.4);
+  mix-blend-mode: multiply;
+}
+.activity-item .kind.kind-observation  { border-color: #2b6a4a; color: #2b6a4a; }
+.activity-item .kind.kind-yield        { border-color: #9f2c1e; color: #9f2c1e; }
+.activity-item .kind.kind-soil_test    { border-color: #5a4020; color: #5a4020; }
+.activity-item .kind.kind-application  { border-color: #1e4a8c; color: #1e4a8c; }
+.activity-item .kind.kind-field        { border-color: #6a4a82; color: #6a4a82; }
+.activity-item .kind.kind-photo        { border-color: #b4740f; color: #b4740f; }
+
+.activity-item .sentence {
+  display: block;
+  margin-top: 8px;
+  font-family: "Caveat", cursive;
+  font-size: 22px;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.activity-item .sentence strong {
+  font-weight: 700;
+  background:
+    linear-gradient(transparent 60%, rgba(244,225,74,0.55) 60% 95%, transparent 95%);
+  padding: 0 2px;
+}
+
+.activity-item .muted {
+  display: inline-block;
+  font-family: "Cutive Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+  vertical-align: middle;
+}
+
+.empty {
+  position: relative; z-index: 2;
+  font-family: "Caveat", cursive;
+  font-size: 22px;
+  color: var(--graphite-soft);
+  text-align: center;
+  padding: 24px 0 14px;
+}
+.empty::before {
+  content: "✎ ";
+  color: var(--ink);
+}
+
+/* =====================
+   PHOTOS (polaroids)
+===================== */
+#photos.photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+.polaroid {
+  background: #fbf7eb;
+  padding: 14px 14px 42px;
+  box-shadow:
+    0 12px 22px -12px rgba(0,0,0,0.55),
+    0 4px 8px -3px rgba(0,0,0,0.35);
+  transform: rotate(var(--r, -2deg));
+  position: relative;
+  width: 240px;
+}
+.polaroid:nth-child(2n) { transform: rotate(2.5deg); }
+.polaroid:nth-child(3n) { transform: rotate(-1deg); }
+.polaroid img, .polaroid .img-slot {
+  width: 100%; height: 200px;
+  background: #ddd;
+  object-fit: cover;
+  display: block;
+}
+.polaroid .caption {
+  position: absolute;
+  left: 14px; right: 14px;
+  bottom: 8px;
+  font-family: "Caveat", cursive;
+  font-size: 18px;
+  color: var(--ink);
+  text-align: center;
+}
+
+/* =====================
+   FOOTER dog-ear signup link
+===================== */
+.footer {
+  max-width: 1020px;
+  margin: 60px auto 10px;
+  text-align: center;
+}
+.dog-ear {
+  position: relative;
+  display: inline-block;
+  padding: 18px 44px 20px 28px;
+  background: var(--paper-warm);
+  color: var(--ink);
+  font-family: "Caveat", cursive;
+  font-size: 24px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: var(--shadow);
+  transform: rotate(-1deg);
+  transition: transform 0.2s ease;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%);
+}
+.dog-ear:hover {
+  transform: rotate(-1deg) translateY(-2px);
+}
+.dog-ear::after {
+  content: "";
+  position: absolute;
+  right: 0; bottom: 0;
+  width: 22px; height: 22px;
+  background:
+    linear-gradient(135deg, transparent 50%, #c8b07c 50%, #a68c58 100%);
+  box-shadow: -1px -1px 2px rgba(0,0,0,0.15);
+}
+.dog-ear-kicker {
+  display: block;
+  font-family: "Special Elite", monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--graphite-soft);
+  margin-bottom: 2px;
+}
+
+.colophon {
+  margin-top: 26px;
+  font-family: "Cutive Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(245,236,214,0.5);
+}
+
+/* =====================
+   RESPONSIVE
+===================== */
+@media (max-width: 720px) {
+  .desk { padding: 24px 12px 60px; }
+  .masthead { padding: 18px 18px 22px; }
+  .masthead-title { font-size: 42px; }
+  .section { padding: 28px 20px 28px; }
+  #aggregates.notebook { padding: 20px 16px 20px 60px; }
+  .activity-item { padding: 14px 14px 16px 44px; }
+  .activity-item::before { left: 36px; }
+  .activity-item::after { left: 48px; right: 14px; }
+  .plaque-board { padding: 22px 14px 18px; }
+  .stat { min-height: 100px; }
+  .rubber-stamp { right: 14px; top: 14px; font-size: 12px; padding: 8px 14px; }
+  .crops-strip { padding: 14px 14px 16px; }
+}
+  </style>
+</head>
+<body>
+
+<!-- SVG filter defs (letterpress roughening on masthead title) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="roughen-text">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015 0.9" numOctaves="2" seed="4"/>
+      <feDisplacementMap in="SourceGraphic" scale="0.8"/>
+    </filter>
+  </defs>
+</svg>
+
+<main class="desk">
+  <div class="coffee-ring" aria-hidden="true"></div>
+
+  <div class="ledger-wrap">
+
+    <!-- MASTHEAD -->
+    <header class="masthead">
+      <div class="tape-h tape-tl" aria-hidden="true"></div>
+      <div class="tape-h tape-tr" aria-hidden="true"></div>
+      <div class="ink-blot" aria-hidden="true"></div>
+      <div class="masthead-kicker">
+        <span>Vol. I · № 1</span>
+        <em>Published from the Prairies</em>
+        <span>Live Edition</span>
+      </div>
+      <h1 class="masthead-title">The&nbsp;Trial&nbsp;Ledger</h1>
+      <div class="masthead-subtitle">Live running results — 2026 Buperac × SixRing foliar biostimulant season.</div>
+      <div class="masthead-dateline">
+        <span>Updated continuously</span>
+        <span>Aggregated · never named</span>
+        <span>Privacy floor · 3 farms</span>
+      </div>
+      <div class="masthead-foot" aria-hidden="true"></div>
+    </header>
+
+    <!-- BRASS PLAQUE HEADLINE -->
+    <section class="plaque-board" aria-label="Trial headline figures">
+      <div class="plaque-board-label">2026 Field Totals</div>
+      <!-- trial.js fills #headline with 8 .stat tiles in this order:
+           Farms / Acres / Provinces / Crops in trial /
+           Applications / Yield reports / Soil tests / Observations -->
+      <div id="headline" class="headline-grid"></div>
+    </section>
+
+    <!-- CROPS IN TRIAL — masking-tape chip strip -->
+    <section class="crops-strip" aria-labelledby="crops-title">
+      <span id="crops-title" class="crops-strip-label">Crops in trial</span>
+      <div id="crops-list"></div>
+    </section>
+
+    <!-- AGGREGATES — notebook page -->
+    <section class="section tilt-l" aria-labelledby="agg-title">
+      <h2 id="agg-title" class="section-title">Crop yield averages</h2>
+      <p class="section-sub">
+        Unlocks per crop once <strong>3 farms</strong> have reported yield — so no single farm's numbers show through.
+      </p>
+      <div id="aggregates" class="notebook"></div>
+    </section>
+
+    <!-- ACTIVITY — pinned index cards -->
+    <section class="section tilt-r activity-board" aria-labelledby="act-title">
+      <h2 id="act-title" class="section-title">Recent activity</h2>
+      <p class="section-sub">
+        Pinned to the board as farmers log in. <strong>Province only — no names, no farm names, no emails.</strong>
+      </p>
+      <div id="activity"></div>
+    </section>
+
+    <!-- PHOTOS — hidden by JS unless populated -->
+    <section class="section tilt-l" id="photosSection" hidden aria-labelledby="pho-title">
+      <h2 id="pho-title" class="section-title">From the field</h2>
+      <p class="section-sub">Only what farmers explicitly shared. Captions in their own handwriting.</p>
+      <div id="photos" class="photos"></div>
+    </section>
+
+    <!-- FOOTER — dog-eared signup link -->
+    <footer class="footer">
+      <a href="/" class="dog-ear">
+        <span class="dog-ear-kicker">← back to</span>
+        trial signup
+      </a>
+      <div class="colophon">Bio Trial · 2026 season · published on a desk, somewhere on the prairies</div>
+    </footer>
+
+  </div>
+</main>
+
+<!-- ==============================
+     Decorators: trial.js writes data-only DOM; this script observes
+     mutations to #headline / #activity / #aggregates and sprinkles
+     in the desk theatre (brass screws, pushpins, kind-coloured
+     rubber-stamp badges, confidential seal + privacy meter).
+     All DOM construction uses document.createElement (no innerHTML).
+============================== -->
+<script>
+(function () {
+  "use strict";
+
+  // Each .stat tile gets its bottom two screws after trial.js appends it.
+  const headline = document.getElementById("headline");
+  function decoratePlaque(el) {
+    if (!el || el.dataset.decorated) return;
+    el.dataset.decorated = "1";
+    const bl = document.createElement("span"); bl.className = "screw-bl";
+    const br = document.createElement("span"); br.className = "screw-br";
+    el.appendChild(bl); el.appendChild(br);
+  }
+  new MutationObserver((muts) => {
+    muts.forEach(m => m.addedNodes.forEach(n => {
+      if (n.nodeType === 1 && n.classList.contains("stat")) decoratePlaque(n);
+    }));
+  }).observe(headline, { childList: true });
+
+  // Each .activity-item gets a pushpin, kind-colour badge, province bolding,
+  // and its remaining text wrapped as .sentence so Caveat handwriting kicks in.
+  const activity = document.getElementById("activity");
+  function kindFromBadgeText(t) {
+    const k = (t || "").trim().toLowerCase();
+    if (k.includes("observ")) return "observation";
+    if (k.includes("yield")) return "yield";
+    if (k.includes("soil"))  return "soil_test";
+    if (k.includes("appl"))  return "application";
+    if (k.includes("field")) return "field";
+    if (k.includes("photo")) return "photo";
+    return "observation";
+  }
+  function decorateActivity(row) {
+    if (!row || row.dataset.decorated) return;
+    row.dataset.decorated = "1";
+
+    const pin = document.createElement("span"); pin.className = "pin";
+    row.prepend(pin);
+
+    const spans = row.querySelectorAll(":scope > span");
+    let kindSpan = null;
+    spans.forEach(s => {
+      if (!kindSpan && !s.classList.contains("muted") && !s.classList.contains("pin")) kindSpan = s;
+    });
+    if (kindSpan) {
+      kindSpan.classList.add("kind");
+      kindSpan.classList.add("kind-" + kindFromBadgeText(kindSpan.textContent));
+    }
+
+    const provRegex = /\b(AB|SK|MB|BC|ON|QC|NB|NS|NL|PE|YT|NT|NU)\b/g;
+    row.childNodes.forEach(node => {
+      if (node.nodeType === 3 && provRegex.test(node.textContent)) {
+        const frag = document.createDocumentFragment();
+        const parts = node.textContent.split(provRegex);
+        parts.forEach((p, i) => {
+          if (i % 2 === 1) {
+            const strong = document.createElement("strong");
+            strong.textContent = p;
+            frag.appendChild(strong);
+          } else {
+            frag.appendChild(document.createTextNode(p));
+          }
+        });
+        node.replaceWith(frag);
+      }
+    });
+
+    const sentenceNodes = [];
+    row.childNodes.forEach(n => {
+      if (n.nodeType === 1 && (n.classList.contains("kind") || n.classList.contains("muted") || n.classList.contains("pin") || n.classList.contains("sentence"))) return;
+      sentenceNodes.push(n);
+    });
+    if (sentenceNodes.length && !row.querySelector(".sentence")) {
+      const wrap = document.createElement("span");
+      wrap.className = "sentence";
+      sentenceNodes.forEach(n => wrap.appendChild(n));
+      const muted = row.querySelector(".muted");
+      if (muted) row.insertBefore(wrap, muted);
+      else row.appendChild(wrap);
+    }
+  }
+  new MutationObserver((muts) => {
+    muts.forEach(m => m.addedNodes.forEach(n => {
+      if (n.nodeType === 1 && n.classList.contains("activity-item")) decorateActivity(n);
+    }));
+  }).observe(activity, { childList: true });
+
+  // #aggregates: if trial.js writes a table.agg we leave it alone. If it
+  // writes an empty-state paragraph like "Aggregates unlock at 3 farms —
+  // 1 reporting so far.", parse the two numbers and swap in a CONFIDENTIAL
+  // seal with progress dots.
+  const aggs = document.getElementById("aggregates");
+  function buildSeal(current, target) {
+    aggs.replaceChildren();
+
+    const stamp = document.createElement("div");
+    stamp.className = "rubber-stamp";
+    stamp.setAttribute("aria-hidden", "true");
+    stamp.appendChild(document.createTextNode("Confidential"));
+    const stampSub = document.createElement("span");
+    stampSub.className = "rubber-stamp-sub";
+    stampSub.textContent = "insufficient sample";
+    stamp.appendChild(stampSub);
+    aggs.appendChild(stamp);
+
+    const overlay = document.createElement("div");
+    overlay.className = "seal-overlay";
+    const strip = document.createElement("div");
+    strip.className = "seal-strip";
+
+    const title = document.createElement("div");
+    title.className = "seal-title";
+    title.textContent = `Aggregates unlock at ${target} farms`;
+    strip.appendChild(title);
+
+    const meta = document.createElement("div");
+    meta.className = "seal-meta";
+    meta.appendChild(document.createTextNode("Currently reporting"));
+    const progress = document.createElement("span");
+    progress.className = "seal-progress";
+    progress.textContent = `${current} of ${target}`;
+    meta.appendChild(progress);
+    strip.appendChild(meta);
+
+    const meter = document.createElement("div");
+    meter.className = "privacy-meter";
+    meter.setAttribute("aria-label", `${current} of ${target} farms reporting`);
+    for (let i = 0; i < target; i++) {
+      const dot = document.createElement("span");
+      dot.className = i < current ? "privacy-dot filled" : "privacy-dot";
+      meter.appendChild(dot);
+    }
+    strip.appendChild(meter);
+    overlay.appendChild(strip);
+    aggs.appendChild(overlay);
+  }
+  function decorateAggregates() {
+    if (aggs.querySelector("table.agg")) return;
+    if (aggs.querySelector(".seal-overlay")) return;   // idempotent
+    const txt = (aggs.textContent || "").trim();
+    if (!txt) return;                                  // wait for trial.js
+    const floorMatch = txt.match(/(\d+)\s*(?:farms?)/i);
+    const currentMatch = txt.match(/(\d+)\s*(?:reporting|so far|of)/i);
+    const target = floorMatch ? parseInt(floorMatch[1], 10) : 3;
+    const current = currentMatch ? parseInt(currentMatch[1], 10) : 0;
+    buildSeal(Math.min(current, target), target);
+  }
+  new MutationObserver(decorateAggregates).observe(aggs, { childList: true, subtree: true });
+})();
+</script>
+
+<!-- Real data loaders — anon RPC to public.get_trial_dashboard(). -->
+<script src="supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="trial.js" defer></script>
+
+</body>
+</html>

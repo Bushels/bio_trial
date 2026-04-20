@@ -55,12 +55,43 @@
   });
 
   // ==============================================
+  // PRICING — $2.80/ac live subtotal
+  // ==============================================
+  const PRICE_PER_ACRE_CENTS = 280;
+  const acresInput = document.getElementById("acresInput");
+  const acresSubtotalAmt = document.getElementById("acresSubtotalAmt");
+  const fmtMoney = (cents) =>
+    new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 })
+      .format(cents / 100);
+  function updateSubtotal() {
+    const a = parseInt(acresInput.value, 10);
+    acresSubtotalAmt.textContent = (a && a > 0) ? fmtMoney(a * PRICE_PER_ACRE_CENTS) : "—";
+  }
+  acresInput.addEventListener("input", updateSubtotal);
+  updateSubtotal();
+
+  // ==============================================
+  // LOGISTICS — toggle ship-address block
+  // ==============================================
+  const logisticsInputs = document.querySelectorAll('input[name="logistics"]');
+  const shipBlock = document.getElementById("shipBlock");
+  const shipInputs = shipBlock.querySelectorAll('input');
+  function syncShipBlock() {
+    const choice = Array.from(logisticsInputs).find(r => r.checked)?.value;
+    const isShip = choice === "ship";
+    shipBlock.hidden = !isShip;
+    shipInputs.forEach(i => { i.required = isShip; });
+  }
+  logisticsInputs.forEach(r => r.addEventListener("change", syncShipBlock));
+  syncShipBlock();
+
+  // ==============================================
   // ODOMETER
   // ==============================================
   const DIGITS = 6;
   const digitsEl = document.getElementById("odo-digits");
   const drums = [];
-  const DRUM_H = () => drums[0] ? drums[0].getBoundingClientRect().height : 64;
+  const DRUM_H = () => drums[0] ? drums[0].drum.getBoundingClientRect().height : 64;
 
   // Build drums, each with a strip of 0..9 then a repeated 0 (for a smooth wrap)
   for (let i = 0; i < DIGITS; i++) {
@@ -246,14 +277,6 @@
   }
 
   // ==============================================
-  // SIMULATE a new signup (button below odo)
-  // ==============================================
-  document.getElementById("simBtn").addEventListener("click", () => {
-    const bump = Math.floor(20 + Math.random() * 180); // 20-200 acres
-    rollTo(currentAcres + bump);
-  });
-
-  // ==============================================
   // FORM SUBMIT
   // ==============================================
   const form = document.getElementById("trialForm");
@@ -266,6 +289,7 @@
 
     const acres = parseInt(data.get("acres"), 10);
     const crops = data.getAll("crops");
+    const logistics_method = (data.get("logistics") || "").toString();
     const payload = {
       name: (data.get("name") || "").toString().trim(),
       farm_name: (data.get("farm") || "").toString().trim(),
@@ -276,6 +300,10 @@
       crops,
       crops_other: (data.get("other_crop") || "").toString().trim(),
       acres,
+      logistics_method,
+      delivery_street: (data.get("delivery_street") || "").toString().trim(),
+      delivery_city:   (data.get("delivery_city")   || "").toString().trim(),
+      delivery_postal: (data.get("delivery_postal") || "").toString().trim(),
       source: "landing_page"
     };
 
@@ -287,6 +315,12 @@
     if (!payload.province_state) missing.push("province/state");
     if (!crops.length) missing.push("at least one crop");
     if (!acres || acres < 1) missing.push("acres");
+    if (!logistics_method) missing.push("pickup or shipping choice");
+    if (logistics_method === "ship") {
+      if (!payload.delivery_street) missing.push("delivery street");
+      if (!payload.delivery_city) missing.push("delivery city");
+      if (!payload.delivery_postal) missing.push("delivery postal code");
+    }
     if (missing.length) {
       alert("Please fill in: " + missing.join(", "));
       return;

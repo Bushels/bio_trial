@@ -13,3 +13,17 @@ design/
 *.docx
 BioLift_Cooperator_Trial_Spec_v1.md
 eadf612ecb81
+
+# …but do ship the SixRing agronomy brief (linked from the landing page)
+!uploads/sixring-agronomy-brief.pdf
+
+# Tooling artifacts
+.claude/
+.playwright-mcp/
+
+# Verification screenshots (ad-hoc, not page assets)
+after-removal.png
+crops-view.png
+desktop-full.png
+mobile-full.png
+verify-*.png
