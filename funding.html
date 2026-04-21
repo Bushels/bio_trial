@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#3d7a2f" />
+  <title>Biostimulant funding — grants for your 2026 trial</title>
+  <meta name="description" content="A clipped-together directory of USA and Canadian grant programs that can help pay for biostimulant trials, nitrogen reduction, and soil-health work on your farm." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Permanent+Marker&family=Special+Elite&family=Cutive+Mono&family=Inter:wght@400;500;600;700&family=IM+Fell+English+SC&family=Kalam:wght@400;700&display=swap" />
+  <link rel="stylesheet" href="funding.css" />
+</head>
+<body class="funding">
+  <main class="desk">
+    <div class="wrap">
+
+      <!-- Top bar: breadcrumbs back to the rest of the site -->
+      <nav class="top-bar" aria-label="site">
+        <a class="back-link" href="/">← enrolment page</a>
+        <span class="crumbs">
+          <a href="/trial">live trial results</a>
+          <a href="/vendor">SixRing login</a>
+        </span>
+      </nav>
+
+      <!-- Hero memo: pinned bulletin on the desk -->
+      <section class="memo" aria-labelledby="memoTitle">
+        <span class="pin" aria-hidden="true"></span>
+        <span class="kicker">memo to the co-op · april 2026</span>
+        <h1 id="memo-title" class="memo-title">
+          <span class="line l1">There's money</span>
+          <span class="line l2">to try <em>biostimulants.</em></span>
+        </h1>
+        <p class="memo-sub">
+          Pull up a chair. Every one of the programs below — federal, state,
+          or provincial — can help cover the cost of reducing synthetic
+          nitrogen, testing a biological, or running an on-farm trial.
+          Filter to your province or state, then click through.
+        </p>
+
+        <div class="memo-stats" role="group" aria-label="program counts">
+          <div class="tag tag-usa">
+            <span class="tag-lead">Tracking · USA</span>
+            <span class="tag-amount" id="usaCount">—</span>
+          </div>
+          <div class="tag tag-can">
+            <span class="tag-lead">Tracking · Canada</span>
+            <span class="tag-amount" id="canCount">—</span>
+          </div>
+          <div class="tag tag-total">
+            <span class="tag-lead">Showing</span>
+            <span class="tag-amount" id="shownCount">—</span>
+            <span class="tag-unit">of <span id="totalCount">—</span></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Two-column board -->
+      <div class="board">
+
+        <!-- Filters clipboard -->
+        <aside class="clipboard" aria-label="filter grants">
+          <div class="clip" aria-hidden="true">
+            <span class="clip-jaw"></span>
+          </div>
+
+          <h2 class="clipboard-title">Refine</h2>
+          <p class="clipboard-sub">narrow the stack</p>
+
+          <div class="filter-group">
+            <label class="filter-label" for="searchInput">Keyword</label>
+            <input id="searchInput" class="filter-input" type="search" placeholder="e.g. drought, NRCS, OFCAF" autocomplete="off" />
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Country</span>
+            <div class="seg" role="group" aria-label="country">
+              <button class="seg-btn is-active" data-country="All" type="button">All</button>
+              <button class="seg-btn" data-country="USA" type="button">USA</button>
+              <button class="seg-btn" data-country="Canada" type="button">Canada</button>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label" for="regionSelect">State / Province</label>
+            <select id="regionSelect" class="filter-input" disabled>
+              <option>Pick a country first</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Targeted benefit</span>
+            <div id="benefitList" class="benefit-list" role="group" aria-label="benefit"></div>
+          </div>
+
+          <button id="clearFiltersBtn" class="clear-btn" type="button">Clear filters</button>
+        </aside>
+
+        <!-- Results -->
+        <section class="results" aria-label="grant programs">
+          <header class="results-head">
+            <h2 class="results-title">Grant programs</h2>
+            <span id="resultsMeta" class="results-meta">—</span>
+          </header>
+
+          <div id="grantGrid" class="grant-grid" aria-live="polite"></div>
+
+          <div id="emptyState" class="empty-state" hidden>
+            <div class="empty-note">
+              <span class="empty-crumple"></span>
+              <h3>Nothing matching in this drawer.</h3>
+              <p>Try loosening a filter — the empty-handed farmer never finds the grant.</p>
+              <button id="emptyClearBtn" class="clear-btn" type="button">Clear filters</button>
+            </div>
+          </div>
+
+          <footer class="results-foot">
+            <span>Directory compiled from public federal, state, and provincial program pages. Amounts and deadlines change — verify with the issuing body before applying.</span>
+            <span id="lastUpdated" class="stamp-lite">updated · 2026-04-21</span>
+          </footer>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="funding-data.js" defer></script>
+  <script src="funding.js" defer></script>
+</body>
+</html>
