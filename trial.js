@@ -84,7 +84,7 @@
   }
 
   // Plaques cover every kind of trial data we're capturing:
-  // scale indicators (farms / acres / provinces / crops) on row 1,
+  // scale indicators (farms / acres / provinces-or-states / crops) on row 1,
   // engagement indicators (apps / yields / soil / observations) on row 2,
   // rigor tiers (controlled / referenced / observational / undeclared) on
   // row 3 — this 3rd row is only rendered when the backend supplied tier
@@ -94,7 +94,15 @@
     host.replaceChildren();
     host.appendChild(stat(h.farms_count ?? 0,                          "Farms enrolled"));
     host.appendChild(stat(Math.round(Number(h.acres_enrolled) || 0),   "Acres enrolled"));
-    host.appendChild(stat(h.provinces_count ?? 0,                      "Provinces"));
+    // Provinces (CA) + States (US) as two plaques when the RPC supplies both;
+    // older RPC versions only return provinces_count (combined), so fall back
+    // to the single "Provinces / States" tile in that case.
+    if (Object.prototype.hasOwnProperty.call(h, "states_count")) {
+      host.appendChild(stat(h.provinces_count ?? 0,                    "Provinces (CA)"));
+      host.appendChild(stat(h.states_count ?? 0,                       "States (US)"));
+    } else {
+      host.appendChild(stat(h.provinces_count ?? 0,                    "Provinces / States"));
+    }
     host.appendChild(stat(h.crops_count ?? 0,                          "Crops in trial"));
     host.appendChild(stat(h.applications_count ?? 0,                   "Applications logged"));
     host.appendChild(stat(h.yields_count ?? 0,                         "Yield reports"));
@@ -299,7 +307,7 @@
       field_created: "Field",
       field:         "Field",
       photo:         "Photo",
-      moisture_test: "Moisture",
+      moisture_test: "Soil moisture",
     })[k] || String(k || "event").replace(/_/g, " ");
   }
 
@@ -313,7 +321,7 @@
       field_created: "added a field",
       field:         "added a field",
       photo:         "shared a photo",
-      moisture_test: "logged a moisture reading",
+      moisture_test: "logged a soil moisture reading",
     })[k] || `logged ${String(k || "event").replace(/_/g, " ")}`;
   }
 

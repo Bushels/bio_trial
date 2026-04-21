@@ -1,0 +1,627 @@
+/* =========================================================
+   Buperac Bio Trial — Farmer Dashboard ("The Farmer File")
+   Mobile-first desk aesthetic. Reuses the design tokens from
+   mock-farmer-dashboard.html; sibling file to styles.css so
+   the landing page and the dashboard stay in lock-step.
+
+   Class naming mirrors the mock so the design intent is
+   greppable across design/ and production code.
+   ========================================================= */
+
+:root {
+  --f-ink:          #1e2a4a;
+  --f-ink-soft:     #2b3a63;
+  --f-graphite:     #3a3a38;
+  --f-graphite-soft:#55554f;
+  --f-green:        #3d7a2f;
+  --f-green-soft:   #6a9b5c;
+  --f-red-stamp:    #9f2c1e;
+  --f-amber:        #c78f2a;
+  --f-blue:         #4a6ba0;
+  --f-paper:        #f5ecd6;
+  --f-paper-warm:   #efe0bd;
+  --f-paper-card:   #fffaef;
+  --f-note-yellow:  #f6e27a;
+  --f-tape:         rgba(240, 224, 170, 0.85);
+  --f-telegram:     #229ed9;
+  --f-border:       rgba(58, 40, 18, 0.18);
+  --f-border-strong:rgba(58, 40, 18, 0.35);
+  --f-shadow:       0 12px 24px -10px rgba(40, 20, 10, 0.45),
+                    0 4px 8px -3px rgba(40, 20, 10, 0.35);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body.farmer {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  color: var(--f-graphite);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  background: #2a1a0e;
+}
+
+.farmer .desk {
+  position: relative;
+  min-height: 100vh;
+  padding: 24px clamp(12px, 4vw, 60px) 80px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(255, 220, 160, 0.18), transparent 55%),
+    radial-gradient(ellipse at 80% 90%, rgba(0,0,0,0.25), transparent 60%),
+    repeating-linear-gradient(90deg,
+      #6b3f1d 0 180px, #5e371a 180px 182px,
+      #6b3f1d 182px 360px, #5a3317 360px 362px),
+    linear-gradient(180deg, #7a4a25, #5a3418);
+}
+.farmer .desk::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 30%, transparent 45%, rgba(0,0,0,0.4) 100%);
+}
+.farmer .wrap { position: relative; max-width: 1200px; margin: 0 auto; }
+
+/* ========== Top bar ========== */
+.farmer .top-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 10px; flex-wrap: wrap;
+  color: var(--f-paper-warm);
+  font-family: "Cutive Mono", ui-monospace, monospace;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+.farmer .top-bar a {
+  color: var(--f-paper-warm);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--f-paper-warm);
+}
+
+/* ========== Auth error (kept visible above fold) ========== */
+.farmer .auth-error {
+  background: #fff;
+  border: 2px solid var(--f-red-stamp);
+  color: var(--f-red-stamp);
+  padding: 14px 18px;
+  font-family: "Special Elite", monospace;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  margin-bottom: 18px;
+  border-radius: 3px;
+  box-shadow: var(--f-shadow);
+}
+
+/* ========== Header folder ========== */
+.farmer .folder {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.08), transparent 20%),
+    var(--f-paper);
+  border-radius: 2px;
+  box-shadow: var(--f-shadow);
+  padding: 22px 20px 22px;
+  margin-bottom: 22px;
+  transform: rotate(-0.2deg);
+}
+@media (min-width: 640px) {
+  .farmer .folder { padding: 26px 34px 28px; }
+}
+.farmer .folder::before {
+  content: "Confidential"; position: absolute;
+  right: 8px; top: 10px;
+  padding: 4px 10px; border: 2px double var(--f-red-stamp);
+  color: var(--f-red-stamp);
+  font-family: "IM Fell English SC", serif;
+  font-size: 11px; letter-spacing: 0.18em;
+  transform: rotate(8deg); opacity: 0.7;
+  pointer-events: none;
+}
+@media (min-width: 640px) {
+  .farmer .folder::before {
+    right: -18px; top: 22px; font-size: 14px; padding: 6px 14px;
+  }
+}
+.farmer .folder-tape {
+  position: absolute; top: -14px; left: 40px;
+  width: 120px; height: 28px;
+  background: var(--f-tape);
+  box-shadow: 0 1px 1px rgba(0,0,0,0.15);
+  clip-path: polygon(2% 20%, 14% 5%, 28% 18%, 48% 4%, 68% 16%, 88% 6%, 98% 18%, 96% 82%, 84% 94%, 66% 82%, 48% 94%, 30% 82%, 14% 94%, 2% 86%);
+}
+.farmer .folder-kicker {
+  font-family: "Special Elite", monospace;
+  font-size: 11px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--f-graphite-soft);
+  margin-bottom: 8px;
+}
+.farmer .folder-title {
+  font-family: "Permanent Marker", cursive;
+  font-size: clamp(26px, 6vw, 44px);
+  color: var(--f-ink); margin: 0;
+  line-height: 1.1;
+  word-break: break-word;
+}
+.farmer .folder-title em {
+  font-style: normal;
+  font-family: "Caveat", cursive;
+  font-weight: 700; font-size: 0.82em;
+  color: var(--f-red-stamp);
+}
+.farmer .folder-meta {
+  display: flex; flex-wrap: wrap; gap: 6px 14px;
+  margin: 12px 0 0;
+  font-family: "Cutive Mono", monospace;
+  font-size: 13px; color: var(--f-graphite);
+}
+.farmer .folder-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.farmer .folder-meta .dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--f-green);
+}
+.farmer .folder-meta .dot.warn { background: var(--f-amber); }
+.farmer .folder-meta .dot.info { background: var(--f-telegram); }
+.farmer .folder-meta .dot.muted{ background: var(--f-graphite-soft); }
+
+/* ========== Quick tiles ========== */
+.farmer .quick-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+@media (min-width: 720px) {
+  .farmer .quick-tiles { grid-template-columns: repeat(4, 1fr); gap: 16px; }
+}
+.farmer .tile {
+  position: relative;
+  background: linear-gradient(180deg, #fffaef, #f2e2b7);
+  border: 1px solid var(--f-border);
+  box-shadow: var(--f-shadow);
+  padding: 14px 16px;
+  border-radius: 2px;
+  transform: rotate(var(--t-tilt, 0deg));
+}
+@media (min-width: 640px) {
+  .farmer .tile { padding: 18px 20px; }
+}
+.farmer .tile:nth-child(1) { --t-tilt: -0.6deg; }
+.farmer .tile:nth-child(2) { --t-tilt:  0.4deg; }
+.farmer .tile:nth-child(3) { --t-tilt: -0.3deg; }
+.farmer .tile:nth-child(4) { --t-tilt:  0.5deg; }
+.farmer .tile .kicker {
+  font-family: "Special Elite", monospace;
+  font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--f-graphite-soft);
+  margin-bottom: 6px;
+}
+.farmer .tile .big {
+  font-family: "IM Fell English SC", serif;
+  font-size: 30px; line-height: 1;
+  color: var(--f-ink); margin: 0 0 6px;
+}
+@media (min-width: 640px) {
+  .farmer .tile .big { font-size: 38px; }
+  .farmer .tile .kicker { font-size: 11px; }
+}
+.farmer .tile .big small { font-size: 14px; color: var(--f-graphite-soft); margin-left: 4px; }
+.farmer .tile .sub {
+  font-family: "Caveat", cursive;
+  font-size: 16px; color: var(--f-ink-soft);
+  line-height: 1.25;
+}
+
+/* ========== Board layout ========== */
+.farmer .board {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+@media (min-width: 980px) {
+  .farmer .board { grid-template-columns: 2fr 1fr; gap: 26px; }
+}
+
+/* ========== Panels (paper cards) ========== */
+.farmer .panel {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.1), transparent 24%),
+    var(--f-paper);
+  border-radius: 2px;
+  box-shadow: var(--f-shadow);
+  padding: 18px 18px 22px;
+  margin-bottom: 20px;
+  transform: rotate(var(--p-tilt, 0deg));
+}
+@media (min-width: 640px) {
+  .farmer .panel { padding: 24px 28px 28px; margin-bottom: 26px; }
+}
+.farmer .panel::before {
+  content: ""; position: absolute; inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(180deg,
+    transparent 0 31px, rgba(58, 40, 18, 0.06) 31px 32px);
+}
+.farmer .panel:nth-child(odd)  { --p-tilt: -0.2deg; }
+.farmer .panel:nth-child(even) { --p-tilt:  0.25deg; }
+.farmer .panel > * { position: relative; z-index: 2; }
+
+.farmer .panel-title {
+  font-family: "Permanent Marker", cursive;
+  font-size: 22px; color: var(--f-ink); margin: 0 0 4px;
+  line-height: 1.15;
+}
+@media (min-width: 640px) {
+  .farmer .panel-title { font-size: 24px; }
+}
+.farmer .panel-sub {
+  font-family: "Caveat", cursive; font-size: 16px;
+  color: var(--f-ink-soft); margin: 0 0 14px;
+}
+@media (min-width: 640px) {
+  .farmer .panel-sub { font-size: 18px; margin-bottom: 18px; }
+}
+
+.farmer .empty-muted {
+  font-family: "Caveat", cursive; font-size: 18px;
+  color: var(--f-graphite-soft); padding: 8px 0;
+}
+
+/* ========== Field cards ========== */
+.farmer .fields { display: grid; gap: 14px; }
+.farmer .field-card {
+  position: relative; padding: 14px 16px 16px;
+  background: var(--f-paper-card);
+  border: 1px solid var(--f-border);
+  border-left: 5px solid var(--f-green);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+@media (min-width: 640px) {
+  .farmer .field-card { padding: 16px 18px 18px; }
+}
+.farmer .field-card.referenced   { border-left-color: var(--f-amber); }
+.farmer .field-card.observational{ border-left-color: var(--f-blue); }
+.farmer .field-card.undeclared   { border-left-color: var(--f-graphite-soft); }
+
+.farmer .field-head {
+  display: flex; justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px; margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.farmer .field-name {
+  font-family: "Permanent Marker", cursive;
+  font-size: 18px; color: var(--f-ink); margin: 0;
+  line-height: 1.15;
+  flex: 1 1 auto; min-width: 0;
+}
+@media (min-width: 640px) {
+  .farmer .field-name { font-size: 20px; }
+}
+.farmer .field-tier {
+  font-family: "Special Elite", monospace;
+  font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 8px; border-radius: 2px;
+  background: var(--f-green); color: white;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.farmer .field-tier.referenced   { background: var(--f-amber); }
+.farmer .field-tier.observational{ background: var(--f-blue); }
+.farmer .field-tier.undeclared   { background: var(--f-graphite-soft); }
+
+.farmer .field-meta {
+  font-family: "Cutive Mono", monospace;
+  font-size: 12px; color: var(--f-graphite-soft);
+  margin-bottom: 10px; line-height: 1.4;
+  word-break: break-word;
+}
+@media (min-width: 640px) { .farmer .field-meta { font-size: 13px; } }
+
+.farmer .field-blurb {
+  font-family: "Caveat", cursive; font-size: 16px;
+  color: var(--f-ink-soft); margin-bottom: 10px;
+}
+
+.farmer .plots {
+  display: grid; grid-template-columns: 1fr; gap: 8px;
+}
+@media (min-width: 520px) {
+  .farmer .plots { grid-template-columns: 1fr 1fr; }
+}
+.farmer .plot {
+  padding: 10px 12px;
+  background: rgba(61,122,47,0.08);
+  border-radius: 3px;
+  font-family: "Cutive Mono", monospace; font-size: 13px;
+}
+.farmer .plot.check { background: rgba(176, 100, 30, 0.1); }
+.farmer .plot.virtual { background: rgba(74, 107, 160, 0.08); }
+.farmer .plot .role {
+  display: block; font-family: "Special Elite", monospace;
+  font-size: 10px; letter-spacing: 0.12em;
+  color: var(--f-graphite-soft); text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.farmer .plot .yield {
+  font-family: "IM Fell English SC", serif;
+  font-size: 20px; color: var(--f-ink);
+  display: block;
+}
+@media (min-width: 640px) { .farmer .plot .yield { font-size: 22px; } }
+.farmer .plot .yield.pending {
+  color: var(--f-graphite-soft); font-style: italic;
+  font-family: "Caveat", cursive; font-size: 16px;
+}
+
+.farmer .field-foot {
+  display: flex; justify-content: space-between;
+  flex-wrap: wrap; gap: 6px;
+  margin-top: 10px;
+  font-family: "Caveat", cursive; font-size: 16px;
+  color: var(--f-ink-soft);
+}
+@media (min-width: 640px) { .farmer .field-foot { font-size: 18px; } }
+.farmer .field-delta-pos  { color: #2f6a22; font-weight: 700; }
+.farmer .field-delta-neg  { color: var(--f-red-stamp); font-weight: 700; }
+.farmer .field-delta-flat { color: var(--f-graphite-soft); font-weight: 600; }
+
+/* Declare-trial-type row (when tier not yet set) */
+.farmer .declare-row {
+  display: flex; flex-wrap: wrap; gap: 8px 12px;
+  align-items: center; margin-top: 6px;
+}
+.farmer .declare-row .muted {
+  font-family: "Caveat", cursive; font-size: 16px;
+  color: var(--f-graphite-soft);
+}
+
+/* ========== Inline forms (desk-styled) ========== */
+.farmer .inline-form {
+  margin-top: 12px;
+  padding: 14px 14px 16px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.3), transparent 40%),
+    #fcf6e2;
+  border: 1px dashed var(--f-border-strong);
+  border-radius: 3px;
+}
+.farmer .inline-form .row { display: grid; gap: 10px; margin-bottom: 10px; }
+@media (min-width: 640px) {
+  .farmer .inline-form .row.two { grid-template-columns: 1fr 1fr; }
+}
+.farmer .inline-form label {
+  display: block;
+  font-family: "Kalam", "Caveat", cursive;
+  font-size: 15px; font-weight: 700;
+  color: var(--f-ink); margin-bottom: 2px;
+}
+.farmer .inline-form input[type="text"],
+.farmer .inline-form input[type="number"],
+.farmer .inline-form input[type="file"],
+.farmer .inline-form select,
+.farmer .inline-form textarea {
+  width: 100%;
+  font-family: "Kalam", "Caveat", cursive;
+  font-size: 17px;
+  color: var(--f-ink);
+  background: transparent;
+  border: none;
+  border-bottom: 1.4px solid rgba(58,40,18,0.45);
+  padding: 6px 2px 6px;
+  border-radius: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  /* iOS hates font-size <16 — zooms in on focus. Keep >=16. */
+  min-height: 36px;
+}
+.farmer .inline-form textarea { min-height: 80px; resize: vertical; line-height: 1.4; }
+.farmer .inline-form input:focus,
+.farmer .inline-form select:focus,
+.farmer .inline-form textarea:focus {
+  border-bottom-color: var(--f-ink);
+}
+.farmer .inline-form select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path d='M1 1 L 6 7 L 11 1' stroke='%231e2a4a' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  padding-right: 22px;
+}
+.farmer .inline-form .checkbox-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-family: "Kalam", cursive; font-size: 15px; color: var(--f-ink);
+}
+.farmer .inline-form .checkbox-row input { width: auto; min-height: 0; }
+.farmer .inline-form .form-status {
+  font-family: "Caveat", cursive; font-size: 16px;
+  color: var(--f-graphite-soft); margin-left: 10px;
+}
+
+/* ========== Buttons ========== */
+.farmer button,
+.farmer .btn {
+  font: inherit;
+  font-family: "Permanent Marker", cursive;
+  font-size: 15px;
+  color: var(--f-ink);
+  background: var(--f-paper-card);
+  border: 1.5px solid var(--f-ink);
+  padding: 10px 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  min-height: 44px;
+  transition: transform 80ms ease, box-shadow 80ms ease, background 120ms ease;
+  letter-spacing: 0.3px;
+}
+.farmer button:hover,
+.farmer .btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 var(--f-ink);
+}
+.farmer button:active,
+.farmer .btn:active { transform: translate(1px, 1px); box-shadow: none; }
+.farmer button:disabled { opacity: 0.55; cursor: not-allowed; }
+.farmer button.subtle {
+  font-family: "Kalam", cursive; font-weight: 700;
+  font-size: 14px;
+  background: transparent;
+  border: 1px dashed var(--f-border-strong);
+}
+
+.farmer .log-actions {
+  display: grid; grid-template-columns: 1fr; gap: 10px;
+  margin-top: 18px;
+}
+@media (min-width: 520px) {
+  .farmer .log-actions { grid-template-columns: 1fr 1fr; }
+}
+.farmer .log-btn {
+  padding: 14px 16px;
+  background: var(--f-paper-card);
+  border: 1.5px solid var(--f-ink);
+  border-radius: 3px;
+  font-family: "Permanent Marker", cursive;
+  font-size: 15px; color: var(--f-ink);
+  text-align: left; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 10px; min-height: 48px;
+}
+.farmer .log-btn .arrow { font-family: "Inter", sans-serif; font-size: 20px; }
+.farmer .log-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 var(--f-ink);
+}
+
+/* ========== Timeline ========== */
+.farmer .timeline { display: flex; flex-direction: column; gap: 0; }
+.farmer .tl-item {
+  position: relative;
+  padding: 12px 4px 12px 34px;
+  border-bottom: 1px dashed rgba(30,42,74,0.25);
+  font-family: "Inter", sans-serif; font-size: 14px;
+  color: var(--f-ink);
+}
+.farmer .tl-item:last-child { border-bottom: none; }
+.farmer .tl-item::before {
+  content: ""; position: absolute; left: 10px; top: 18px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--f-green);
+  box-shadow: 0 0 0 4px rgba(61,122,47,0.15);
+}
+.farmer .tl-item.yield::before { background: var(--f-amber); box-shadow: 0 0 0 4px rgba(199,143,42,0.15); }
+.farmer .tl-item.soil::before  { background: #6b4a2b; box-shadow: 0 0 0 4px rgba(107,74,43,0.15); }
+.farmer .tl-item.photo::before { background: var(--f-telegram); box-shadow: 0 0 0 4px rgba(34,158,217,0.15); }
+.farmer .tl-item.app::before   { background: var(--f-red-stamp); box-shadow: 0 0 0 4px rgba(159,44,30,0.15); }
+
+.farmer .tl-kind {
+  display: inline-block;
+  font-family: "Special Elite", monospace; font-size: 10px;
+  letter-spacing: 0.12em; padding: 2px 6px;
+  background: var(--f-green); color: white;
+  border-radius: 2px; margin-right: 8px;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+.farmer .tl-item.yield .tl-kind { background: var(--f-amber); }
+.farmer .tl-item.soil  .tl-kind { background: #6b4a2b; }
+.farmer .tl-item.photo .tl-kind { background: var(--f-telegram); }
+.farmer .tl-item.app   .tl-kind { background: var(--f-red-stamp); }
+
+.farmer .tl-body {
+  display: block;
+  color: var(--f-ink); margin-top: 2px;
+  word-break: break-word;
+}
+.farmer .tl-date {
+  font-family: "Cutive Mono", monospace;
+  font-size: 11px; color: var(--f-graphite-soft);
+  margin-left: 4px;
+  white-space: nowrap;
+}
+@media (min-width: 640px) {
+  .farmer .tl-date { float: right; font-size: 12px; margin-left: 0; }
+}
+.farmer .tl-files {
+  display: block; margin-top: 4px;
+  font-family: "Cutive Mono", monospace;
+  font-size: 12px; color: var(--f-graphite-soft);
+}
+
+/* ========== Telegram pill ========== */
+.farmer .tg {
+  background: var(--f-paper-card);
+  border: 1px solid rgba(34,158,217,0.3);
+  border-radius: 3px;
+  padding: 12px 14px; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 12px;
+  flex-wrap: wrap;
+}
+.farmer .tg-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--f-telegram); color: white;
+  display: grid; place-items: center;
+  font-family: "IM Fell English SC", serif; font-size: 20px;
+  flex: 0 0 auto;
+}
+.farmer .tg-body { flex: 1 1 140px; min-width: 0; }
+.farmer .tg-title {
+  font-family: "Inter", sans-serif; font-weight: 600;
+  font-size: 14px; color: var(--f-ink); margin-bottom: 2px;
+}
+.farmer .tg-title .ok {
+  color: var(--f-green); font-family: "Special Elite", monospace;
+  font-size: 11px; letter-spacing: 0.08em; margin-left: 6px;
+}
+.farmer .tg-sub {
+  font-family: "Cutive Mono", monospace; font-size: 12px;
+  color: var(--f-graphite-soft);
+  word-break: break-word;
+}
+
+.farmer .tg-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 12px 16px;
+  background: var(--f-telegram); color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-family: "Inter", sans-serif;
+  font-weight: 600; font-size: 14px;
+  min-height: 44px;
+  border: none;
+}
+.farmer .tg-btn:hover { background: #1b8cc1; }
+
+.farmer .tg-hint {
+  font-family: "Caveat", cursive; font-size: 17px; color: var(--f-ink-soft);
+  line-height: 1.3;
+}
+
+/* ========== Status card ========== */
+.farmer .status-card {
+  padding: 14px 16px; background: var(--f-paper-card);
+  border: 1px solid var(--f-border);
+  border-radius: 3px;
+}
+.farmer .status-row {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 8px;
+  padding: 8px 0; border-bottom: 1px dashed rgba(58,40,18,0.18);
+  font-family: "Cutive Mono", monospace; font-size: 13px;
+  flex-wrap: wrap;
+}
+.farmer .status-row:last-child { border-bottom: none; }
+.farmer .status-row .label { color: var(--f-graphite-soft); }
+.farmer .status-row .value { color: var(--f-ink); font-weight: 600; text-align: right; }
+.farmer .status-row .value.ok { color: var(--f-green); }
+.farmer .status-row .value.pending { color: var(--f-amber); }
+.farmer .status-row .value.muted { color: var(--f-graphite-soft); }
+
+/* ========== Helpers ========== */
+.farmer [hidden] { display: none !important; }
+
+/* Respect reduced-motion for the subtle rotations */
+@media (prefers-reduced-motion: reduce) {
+  .farmer .folder,
+  .farmer .panel,
+  .farmer .tile { transform: none !important; }
+  .farmer button, .farmer .btn, .farmer .log-btn { transition: none !important; }
+}

@@ -47,8 +47,13 @@
     loginErr.hidden = true;
     loginBtn.disabled = true;
     const fd = new FormData(loginForm);
-    const email = (fd.get("email") || "").toString().trim();
+    let email = (fd.get("email") || "").toString().trim();
     const password = (fd.get("password") || "").toString();
+
+    // Username aliases — map friendly logins to their real auth email.
+    const aliases = { "sixrings": "sixrings@trial.buperac.com" };
+    const alias = aliases[email.toLowerCase()];
+    if (alias) email = alias;
 
     const { error } = await sb.auth.signInWithPassword({ email, password });
     loginBtn.disabled = false;
@@ -351,22 +356,13 @@
     if (e.kind === "stand_count")    return p.plants_per_m2 != null ? `${p.plants_per_m2} plants/m²` : (p.text || "");
     if (e.kind === "protein")        return p.pct != null ? `${p.pct}%` : (p.text || "");
     if (e.kind === "moisture_test") {
+      // Legacy rows used { pct } or { text } only — keep them readable.
       if (p.reading_type == null) {
         return p.pct != null ? `${p.pct}% moisture` : (p.text || "");
       }
       const when = p.observed_on ? ` on ${p.observed_on}` : "";
-      const unitLabel = p.unit === "pct" ? "%" : (p.unit ? ` ${p.unit}` : "");
-      if (p.reading_type === "crop") {
-        return p.value != null ? `Crop moisture: ${p.value}${unitLabel}${when}` : `Crop moisture${when}`;
-      }
-      if (p.reading_type === "soil") {
-        if (p.qualitative) return `Soil moisture: ${p.qualitative}${when}`;
-        return p.value != null ? `Soil moisture depth: ${p.value}${unitLabel}${when}` : `Soil moisture${when}`;
-      }
-      if (p.reading_type === "rainfall") {
-        return p.value != null ? `Rainfall: ${p.value}${unitLabel}${when}` : `Rainfall${when}`;
-      }
-      return p.notes || p.text || "";
+      if (p.qualitative) return `Soil moisture: ${p.qualitative}${when}`;
+      return p.value != null ? `Soil moisture depth: ${p.value} in${when}` : `Soil moisture${when}`;
     }
     if (e.kind === "soil_test")      return p.text || "(soil test)";
     if (e.kind === "heat_event_timing") return p.text || "(heat event)";

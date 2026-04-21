@@ -888,9 +888,10 @@ table.agg tbody td:nth-child(2) {
     <!-- BRASS PLAQUE HEADLINE -->
     <section class="plaque-board" aria-label="Trial headline figures">
       <div class="plaque-board-label">2026 Field Totals</div>
-      <!-- trial.js fills #headline with 8 .stat tiles in this order:
-           Farms / Acres / Provinces / Crops in trial /
-           Applications / Yield reports / Soil tests / Observations -->
+      <!-- trial.js fills #headline with .stat tiles in this order:
+           Farms / Acres / Provinces (CA) / States (US) / Crops in trial /
+           Applications / Yield reports / Soil tests / Observations
+           (+ 4 rigor-tier tiles when the backend supplies them) -->
       <div id="headline" class="headline-grid"></div>
     </section>
 
@@ -913,7 +914,7 @@ table.agg tbody td:nth-child(2) {
     <section class="section tilt-r activity-board" aria-labelledby="act-title">
       <h2 id="act-title" class="section-title">Recent activity</h2>
       <p class="section-sub">
-        Pinned to the board as farmers log in. <strong>Province only — no names, no farm names, no emails.</strong>
+        Pinned to the board as farmers log in. <strong>Province/state only — no names, no farm names, no emails.</strong>
       </p>
       <div id="activity"></div>
     </section>

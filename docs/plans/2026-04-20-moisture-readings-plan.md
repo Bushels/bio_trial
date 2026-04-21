@@ -2,6 +2,17 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
+> **2026-04-20 SCOPE NARROWED — soil-only:** This plan was drafted with three
+> reading variants (crop grain moisture / soil probe / rainfall). On
+> 2026-04-20 the user clarified the intended scope: **moisture readings are
+> soil measurements only** — grain moisture and rainfall were scope creep
+> introduced by the plan. The shipped code now hardcodes
+> `reading_type: "soil"` and `unit: "in"`; the form has no reading-type or
+> unit selector. The payload shape is preserved for forward-compat, but the
+> crop/rainfall branches have been removed from `farmer.js`, `vendor.js`,
+> and `trial.js`. This doc is retained for historical context only — do
+> not treat the crop/rainfall sections below as an implementation spec.
+
 **Goal:** Close the gap between the farmer explainer / trial-dashboard design ("log moisture readings — crop %, soil probe or qualitative, rainfall") and the farmer web form, which today dumps moisture data into free-text observations so it can never be joined to yield deltas.
 
 **Architecture:** The `moisture_test` event kind already exists in the schema CHECK constraint (migration `20260420000002_bio_trial_farmer_catchup.sql:79`), and the farmer form already exposes a "Moisture test" dropdown option — but the form writes `{text: note}` with no structured fields. This plan replaces that generic branch with a three-variant sub-form (crop / soil / rainfall) that writes a typed JSON payload, then updates the farmer timeline, vendor Events panel, and public activity feed to render the new shape while staying null-safe for legacy `{pct, text}` rows. No new migration is required.
