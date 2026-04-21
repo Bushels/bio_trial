@@ -299,7 +299,7 @@
       field_created: "Field",
       field:         "Field",
       photo:         "Photo",
-      moisture_test: "Moisture",
+      moisture_test: "Soil moisture",
     })[k] || String(k || "event").replace(/_/g, " ");
   }
 
@@ -313,7 +313,7 @@
       field_created: "added a field",
       field:         "added a field",
       photo:         "shared a photo",
-      moisture_test: "logged a moisture reading",
+      moisture_test: "logged a soil moisture reading",
     })[k] || `logged ${String(k || "event").replace(/_/g, " ")}`;
   }
 
