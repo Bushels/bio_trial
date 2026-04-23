@@ -1,5 +1,7 @@
 # Bio Trial Standalone Extraction — Implementation Plan
 
+> **Status as of 2026-04-23:** Historical / deferred. Do not execute this as the current production plan without re-validating it. The live app is deployed at `trial.buperac.com`, but it still uses the Bushel Board Supabase project (`ibgsloyjxdopkvwqcqwh`) and Telegram edge functions. Use `README.md` as the current operating guide.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Extract the Buperac bio-trial landing page from the Bushel Board Supabase project into a new standalone "Buperac Trial" Supabase project at `trial.buperac.com`, and rip out the trial integration from `bushel-board-app`.

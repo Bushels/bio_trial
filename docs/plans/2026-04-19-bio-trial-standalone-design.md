@@ -1,8 +1,10 @@
 # Bio Trial — Standalone Extraction Design
 
 **Date:** 2026-04-19
-**Status:** Approved, ready for implementation plan
+**Status:** Historical / deferred as of 2026-04-23
 **Owner:** Kyle Bushell (kyle@bushelsenergy.com)
+
+> Current operating truth: the production site is `trial.buperac.com` on Vercel project `bio-trial`, but the backend still uses the Bushel Board Supabase project (`ibgsloyjxdopkvwqcqwh`) with the `bio_trial` schema and Telegram edge functions. Treat this document as extraction history and a possible future migration plan, not as current deployment state. The current source of truth is `README.md` plus the live `supabase/migrations/` and `supabase/functions/` files.
 
 ## Context
 

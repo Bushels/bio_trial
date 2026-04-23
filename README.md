@@ -117,6 +117,8 @@ Every `INSERT` on `bio_trial.signups` fires the `trg_signups_notify` trigger, wh
 
 Why Telegram and not email: Resend's free tier only allows one verified domain (already used by another Bushels project), and upgrading to Pro is $20/mo. Telegram's Bot API is free and delivers a push to phone in ~1s.
 
+**Pricing invariant.** `public.submit_bio_trial_signup` stores `price_per_acre_cents = 280` on every signup. The web subtotal (`app.js`) and Telegram notifier (`bio-trial-notify-signup`) must preserve cents in display strings when needed. Do not use a whole-dollar-only CAD formatter for the per-acre price: `$2.80/ac` must not round to `$3/ac`.
+
 **Vault entries** on the Supabase project (read by the trigger; update via `vault.update_secret` if rotated):
 
 | Vault secret name | What it is |
@@ -148,6 +150,22 @@ python -m http.server 8000
 # open http://localhost:8000
 ```
 
+## Local checks
+
+Deno is installed on this Windows profile via Scoop and is used to type-check the Supabase Edge Functions locally. Supabase's Deno type packages reference npm dependencies, so use `--node-modules-dir=auto`.
+
+```bash
+deno check --node-modules-dir=auto supabase/functions/bio-trial-notify-signup/index.ts
+deno check --node-modules-dir=auto supabase/functions/bio-trial-farmer-inbox/index.ts
+deno check --node-modules-dir=auto supabase/functions/bio-trial-farmer-upload-url/index.ts
+```
+
 ## Deploy
 
 Vercel picks up pushes to `main` automatically (project `bio-trial`). Custom domain `trial.buperac.com` is configured with a CNAME at the Shopify-managed apex (`buperac.com`) pointing at Vercel's per-project target. Framework preset: **Other**; no build command; output directory is the repo root.
+
+Edge functions are deployed separately through Supabase CLI. The current production project ref is `ibgsloyjxdopkvwqcqwh`.
+
+```bash
+supabase functions deploy bio-trial-notify-signup --project-ref ibgsloyjxdopkvwqcqwh
+```
