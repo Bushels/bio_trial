@@ -31,9 +31,20 @@ const TG_BOT_TOKEN   = Deno.env.get("BIO_TRIAL_TG_BOT_TOKEN");
 const TG_CHAT_ID     = Deno.env.get("BIO_TRIAL_TG_CHAT_ID");
 const WEBHOOK_SECRET = Deno.env.get("BIO_TRIAL_WEBHOOK_SECRET");
 
-const money = (cents: number | null) => cents == null
-  ? "—"
-  : new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 }).format(cents / 100);
+const money = (cents: number | null, fractionDigits?: number) => {
+  if (cents == null || !Number.isFinite(cents)) return "\u2014";
+
+  const dollars = cents / 100;
+  const defaultDigits = Math.abs(dollars - Math.round(dollars)) < 0.000001 ? 0 : 2;
+  const digits = fractionDigits ?? defaultDigits;
+
+  return new Intl.NumberFormat("en-CA", {
+    style: "currency",
+    currency: "CAD",
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(dollars);
+};
 
 // Telegram HTML parse_mode requires <, >, & escaping in text content.
 const esc = (s: string | null | undefined) =>
@@ -63,7 +74,7 @@ function buildMessage(r: SignupRow): string {
     `Trial acres: <b>${r.acres}</b>`,
     `Logistics: ${logistics}`,
     `Address: ${esc(address)}`,
-    `Price: <b>${trialCost}</b> (${r.acres} ac × ${money(r.price_per_acre_cents)})`,
+    `Price: <b>${trialCost}</b> (${r.acres} ac × ${money(r.price_per_acre_cents, 2)}/ac)`,
     ``,
     `Submitted ${esc(submitted)}`,
     `ID: <code>${esc(r.id)}</code>`,

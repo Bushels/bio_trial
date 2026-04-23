@@ -60,9 +60,16 @@
   const PRICE_PER_ACRE_CENTS = 280;
   const acresInput = document.getElementById("acresInput");
   const acresSubtotalAmt = document.getElementById("acresSubtotalAmt");
-  const fmtMoney = (cents) =>
-    new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 })
-      .format(cents / 100);
+  const fmtMoney = (cents) => {
+    const dollars = cents / 100;
+    const digits = Math.abs(dollars - Math.round(dollars)) < 0.000001 ? 0 : 2;
+    return new Intl.NumberFormat("en-CA", {
+      style: "currency",
+      currency: "CAD",
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }).format(dollars);
+  };
   function updateSubtotal() {
     const a = parseInt(acresInput.value, 10);
     acresSubtotalAmt.textContent = (a && a > 0) ? fmtMoney(a * PRICE_PER_ACRE_CENTS) : "—";
