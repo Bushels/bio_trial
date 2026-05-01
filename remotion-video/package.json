@@ -1,0 +1,27 @@
+{
+  "name": "bio-trial-remotion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Farmer-facing marketing video for the 2026 Buperac x SixRing BioLift trial",
+  "scripts": {
+    "start": "remotion studio src/index.ts",
+    "build": "remotion render src/index.ts FarmerExplainer out/bio-trial-farmer.mp4",
+    "build:telegram": "remotion render src/index.ts TelegramTutorial out/telegram-tutorial.mp4",
+    "build:telegram-square": "remotion render src/index.ts TelegramTutorialSquare out/telegram-tutorial-square.mp4",
+    "still": "remotion still src/index.ts FarmerExplainer out/frame.png",
+    "still:telegram": "remotion still src/index.ts TelegramTutorial out/telegram-frame.png",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.200",
+    "@remotion/cli": "4.0.200",
+    "@remotion/paths": "4.0.200",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.200"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "typescript": "5.6.3"
+  }
+}

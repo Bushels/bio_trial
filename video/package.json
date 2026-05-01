@@ -1,0 +1,17 @@
+{
+  "name": "bio-trial-video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "remotion studio src/index.jsx",
+    "render": "remotion render src/index.jsx FarmerExplainerReel out/farmer-explainer-reel.mp4",
+    "render:poster": "remotion still src/index.jsx FarmerExplainerReel out/farmer-explainer-poster.png --frame=1710"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.448",
+    "@remotion/google-fonts": "4.0.448",
+    "react": "19.2.5",
+    "react-dom": "19.2.5",
+    "remotion": "4.0.448"
+  }
+}
