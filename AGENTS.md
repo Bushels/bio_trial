@@ -36,4 +36,4 @@
 - No raw farmer PII in public RPCs, public payloads, generated assets, or logs.
 - The 3-farm privacy floor is DB-enforced; do not bypass it in frontend code, RPCs, or Edge Functions.
 - Do not wire Eric from SixRing into notifications or the vendor console without explicit Kyle approval.
-- Do not push without Kyle approval.
+- Push policy (revised 2026-05-01): push to `main` is pre-approved for routine work — content edits, SEO/meta tweaks, doc/comment changes, refactors with passing checks, generated province pages, and pillar articles already reviewed via Codex. Vercel build failures are the deploy gate. Still ask before: force-push or `--no-verify`; branch deletion or `git reset --hard`; schema migrations against the shared Bushel Board Supabase (`ibgsloyjxdopkvwqcqwh`); changes to `.env*` files, `supabase-config.js`, `vercel.json`, or anything routing-related; deletion of farmer/vendor data; or any push that touches more than ~30 files at once without prior plan.
