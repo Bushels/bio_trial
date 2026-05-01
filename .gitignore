@@ -19,11 +19,18 @@ eadf612ecb81
 
 # Tooling artifacts
 .claude/
+!.claude/
+!.claude/agents/**
+!.claude/skills/**
+.claude/settings.local.json
+.claude/launch.json
+.claude/scheduled_tasks.lock
 .playwright-mcp/
 
-# Verification screenshots (ad-hoc, not page assets)
-after-removal.png
-crops-view.png
-desktop-full.png
-mobile-full.png
-verify-*.png
+# Verification screenshots (ad-hoc, not page assets) — anchored to root so
+# tracked copies inside subdirs (e.g. video/) ship.
+/after-removal.png
+/crops-view.png
+/desktop-full.png
+/mobile-full.png
+/verify-*.png
