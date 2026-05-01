@@ -1,0 +1,5 @@
+# Scaffolded 2026-05-01 by MPS portfolio cleanup template.
+# See MPS/docs/templates/portfolio-cleanup-prompt.md (goal #5) — bumped to current
+# Codex SOTA model and medium reasoning effort.
+model = "gpt-5.5"
+reasoning_effort = "medium"
