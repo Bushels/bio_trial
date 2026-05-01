@@ -3,10 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Trial Ledger — 2026 Field Notes</title>
-  <meta name="description" content="Live results from the 2026 Buperac × SixRing foliar biostimulant trial. Farms, acres, observations, yields — aggregated, never named." />
+  <title>The Trial Ledger — Live 2026 Biostimulant Field Results</title>
+  <meta name="description" content="Live aggregated yield and observation data from the 2026 Buperac × SixRing foliar biostimulant trial. Privacy-floored at 3 farms per crop." />
+  <meta name="keywords" content="biostimulant trial results, foliar biostimulant yield data, lignin biostimulant, on-farm trial 2026, nitrogen reduction trial, wheat canola pulses yield, regenerative agriculture data" />
+  <meta name="author" content="Buperac" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+  <link rel="canonical" href="https://trial.buperac.com/trial" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta name="theme-color" content="#3d7a2f">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Buperac Bio Trial" />
+  <meta property="og:url" content="https://trial.buperac.com/trial" />
+  <meta property="og:title" content="The Trial Ledger — Live 2026 Foliar Biostimulant Results" />
+  <meta property="og:description" content="Live aggregated yield, application, and observation data from the 2026 on-farm biostimulant trial. Privacy-floored at 3 farms per crop." />
+  <meta property="og:image" content="https://trial.buperac.com/favicon.svg" />
+  <meta property="og:locale" content="en_CA" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="The Trial Ledger — Live 2026 Field Results" />
+  <meta name="twitter:description" content="Aggregated yield + observation data from the 2026 foliar biostimulant trial. Updated as farmers log." />
+  <meta name="twitter:image" content="https://trial.buperac.com/favicon.svg" />
+
+  <!-- Microsoft Clarity -->
   <script type="text/javascript">
     (function(c,l,a,r,i,t,y){
         c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -14,6 +35,48 @@
         y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
     })(window, document, "clarity", "script", "wfiijmew82");
   </script>
+
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7958728286012509"
+       crossorigin="anonymous"></script>
+
+  <!-- Dataset schema — Google Dataset Search surfaces this as an indexable agricultural dataset -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    "name": "Buperac × SixRing 2026 Foliar Biostimulant On-Farm Trial — Aggregated Results",
+    "description": "Aggregated, privacy-floored results from a multi-farm on-farm trial of a lignin-derived foliar biostimulant on cereals, oilseeds, and pulses across the Canadian Prairies and US Plains. Per-crop yield aggregates appear only after 3 or more farms have reported; geographic identifiers are limited to province / state.",
+    "url": "https://trial.buperac.com/trial",
+    "sameAs": "https://trial.buperac.com/",
+    "keywords": [
+      "foliar biostimulant",
+      "lignin biostimulant",
+      "nitrogen use efficiency",
+      "on-farm trial",
+      "regenerative agriculture",
+      "wheat",
+      "canola",
+      "pulses"
+    ],
+    "creator": {
+      "@type": "Organization",
+      "name": "Buperac",
+      "url": "https://trial.buperac.com/"
+    },
+    "license": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "isAccessibleForFree": true,
+    "spatialCoverage": "Canadian Prairies and US Northern Plains",
+    "temporalCoverage": "2026-04-01/2026-11-30",
+    "variableMeasured": [
+      "Yield (bu/ac)",
+      "Nitrogen reduction (lb/ac)",
+      "Application timing",
+      "Trial design tier (Controlled / Referenced / Observational)"
+    ]
+  }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Permanent+Marker&family=Special+Elite&family=Cutive+Mono&family=Inter:wght@400;500;600&family=Kalam:wght@400;700&family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&display=swap">
@@ -1107,6 +1170,88 @@ table.agg tbody td:nth-child(2) {
 <script src="supabase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="trial.js" defer></script>
+
+<!-- Site footer — internal cross-links for crawl depth and topical clustering -->
+<style>
+  .site-foot {
+    background: #efe0bd;
+    border-top: 3px solid #6b4a2b;
+    padding: clamp(20px, 4vw, 40px) clamp(16px, 5vw, 60px);
+    color: #3a3a38;
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .site-foot .foot-grid {
+    max-width: 1100px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px 40px;
+  }
+  @media (min-width: 720px) {
+    .site-foot .foot-grid { grid-template-columns: 1.4fr 1fr 1fr 1fr; }
+  }
+  .site-foot h3 {
+    font-family: "Permanent Marker", cursive;
+    font-size: 17px; margin: 0 0 10px;
+    color: #1e2a4a; letter-spacing: 0.5px;
+  }
+  .site-foot ul { list-style: none; margin: 0; padding: 0; }
+  .site-foot li { margin: 6px 0; }
+  .site-foot a {
+    color: #1e2a4a; text-decoration: none;
+    border-bottom: 1px dashed rgba(30, 42, 74, 0.45);
+    padding-bottom: 1px;
+  }
+  .site-foot a:hover { border-bottom-style: solid; }
+  .site-foot .brand p { margin: 6px 0; }
+  .site-foot .brand strong {
+    font-family: "Caveat", cursive; font-size: 22px; color: #3d7a2f; font-weight: 600;
+  }
+  .site-foot .colophon {
+    max-width: 1100px; margin: 24px auto 0; padding-top: 16px;
+    border-top: 1px dashed rgba(107, 74, 43, 0.45);
+    font-size: 12px; color: #55554f; text-align: center;
+  }
+</style>
+<footer class="site-foot" aria-label="site footer">
+  <div class="foot-grid">
+    <div class="brand">
+      <h3>Buperac Bio Trial</h3>
+      <p><strong>0.5 L per acre.</strong></p>
+      <p>A grower-led on-farm trial of a lignin-derived foliar biostimulant on cereals, oilseeds, and pulses. Results aggregated across farms, never named.</p>
+    </div>
+    <div>
+      <h3>Trial</h3>
+      <ul>
+        <li><a href="/">Enrol your fields</a></li>
+        <li><a href="/trial">Live trial ledger</a></li>
+        <li><a href="/learn-lignin-biostimulants">How it works</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Funding</h3>
+      <ul>
+        <li><a href="/funding">All grants</a></li>
+        <li><a href="/funding-alberta">Alberta</a></li>
+        <li><a href="/funding-saskatchewan">Saskatchewan</a></li>
+        <li><a href="/funding-manitoba">Manitoba</a></li>
+        <li><a href="/funding-ontario">Ontario</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>About</h3>
+      <ul>
+        <li>Pricing: $2.80 / acre</li>
+        <li>Privacy floor: ≥3 farms</li>
+        <li><a href="/vendor">SixRing login</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="colophon">
+    Buperac × SixRing 2026 · trial.buperac.com · Built for the Canadian Prairies and US Northern Plains.
+  </div>
+</footer>
 
 </body>
 </html>

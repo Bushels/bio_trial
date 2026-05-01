@@ -1,0 +1,35 @@
+# Buperac Bio Trial — robots.txt
+# Public site at https://trial.buperac.com
+
+User-agent: *
+Allow: /
+Disallow: /farmer
+Disallow: /vendor
+Disallow: /uploads/_
+
+# Block aggressive AI scrapers we don't want training on grower content.
+# Comment out specific lines if you want to opt back in.
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+# AdSense crawler — must be allowed for ads to serve
+User-agent: Mediapartners-Google
+Allow: /
+
+# Sitemap
+Sitemap: https://trial.buperac.com/sitemap.xml
